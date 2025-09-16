@@ -31,6 +31,15 @@ class Controller(ABC):
             This function modifies the data.ctrl in place.
         """
         pass
+    @property
+    def name(self) -> str:
+        return self.__class__.__name__
+
+    def get_history(self) -> np.ndarray:
+        return np.array(self.history)
+
+    def clear(self) -> None:
+        self.history.clear()
 
 class RandomController(Controller):
     def move(self, model: mujoco._structs.MjModel, data: mujoco._structs.MjData, to_track) -> None:
@@ -116,3 +125,6 @@ class NNController(Controller):
 
         # Save movement to history
         self.history.append(to_track[0].xpos.copy())
+
+    def clear(self): # TODO: MAKE RESET WEIGHTS
+        super().clear()
