@@ -74,43 +74,6 @@ def random_move(model: mujoco._structs.MjModel, data: mujoco._structs.MjData, to
     # Or you might not need a delta and use the direct controller outputs
     #
     ##############################################
-    
-import numpy as np
-
-def controller(model: mujoco._structs.MjModel, data: mujoco._structs.MjData, to_track) -> None:
-    """Neural network controller met persistente gewichten, alles in één functie."""
-
-    # Initialiseer persistentie via function attributes
-    if not hasattr(controller, "W1"):
-        input_size = len(data.qpos)
-        hidden_size = 8
-        output_size = model.nu
-        controller.W1 = np.random.randn(input_size, hidden_size) * 0.2
-        controller.W2 = np.random.randn(hidden_size, hidden_size) * 0.2
-        controller.W3 = np.random.randn(hidden_size, output_size) * 0.2
-
-    # Sigmoid activatie
-    def sigmoid(x):
-        return 1.0 / (1.0 + np.exp(-x))
-    
-    # Forward pass
-    inputs = data.qpos
-    layer1 = sigmoid(np.dot(inputs, controller.W1))
-    layer2 = sigmoid(np.dot(layer1, controller.W2))
-    outputs = sigmoid(np.dot(layer2, controller.W3))
-    
-    # Scale outputs naar [-pi/2, pi/2]
-    scaled_outputs = (outputs - 0.5) * np.pi
-
-    # Voeg delta toe voor smooth beweging
-    delta = 0.05
-    data.ctrl += scaled_outputs * delta
-
-    # Clip naar joint limits
-    data.ctrl = np.clip(data.ctrl, -np.pi/2, np.pi/2)
-
-    # Save movement to history
-    HISTORY.append(to_track[0].xpos.copy())
 
 
 def show_qpos_history(history:list):
