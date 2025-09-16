@@ -29,7 +29,7 @@ def controller(
 ) -> None:
     """Neural network controller met persistente gewichten, alles in één functie."""
 
-    # Initialiseer persistentie via function attributes
+    # THIS SHOULD BE REPLACED BY EVOTORCH WEIGHTS
     if not hasattr(controller, "W1"):
         input_size = len(data.qpos)
         hidden_size = 8
@@ -60,6 +60,7 @@ def controller(
 
     # Save movement to history
     HISTORY.append(to_track[0].xpos.copy())
+
 
 
 def show_qpos_history(history: list):

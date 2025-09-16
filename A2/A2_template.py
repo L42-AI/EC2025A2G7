@@ -132,9 +132,8 @@ def main():
     to_track = [data.bind(geom) for geom in geoms if "core" in geom.name]
 
     ########### Set the control callback function ############
-    # This is called every time step to get the next action. 
-    mujoco.set_mjcb_control(lambda m,d: controller(m, d, to_track))
-    # mujoco.set_mjcb_control(lambda m,d: random_move(m, d, to_track))
+    # This is called every time step to get the next action.
+    mujoco.set_mjcb_control(lambda m,d: random_move(m, d, to_track))
 
     # This opens a viewer window and runs the simulation with the controller you defined
     # If mujoco.set_mjcb_control(None), then you can control the limbs yourself.
