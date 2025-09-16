@@ -74,6 +74,34 @@ def random_move(model: mujoco._structs.MjModel, data: mujoco._structs.MjData, to
     # Or you might not need a delta and use the direct controller outputs
     #
     ##############################################
+    
+def controller(model: mujoco._structs.MjModel, data: mujoco._structs.MjData, to_track) -> None:
+    def sigmoid(x):
+        return 1.0 / (1.0 + np.exp(-x))
+    
+    # Simple 3-layer neural network
+    input_size = len(data.qpos)  # Number of joints
+    hidden_size = 8
+    output_size = model.nu  # Number of control inputs
+    
+    # Initialize the network weights randomly
+    W1 = np.random.randn(input_size, hidden_size) * 0.1
+    W2 = np.random.randn(hidden_size, hidden_size) * 0.1
+    W3 = np.random.randn(hidden_size, output_size) * 0.1
+    
+    # Get inputs, in this case the joint positions
+    inputs = data.qpos
+    
+    # Run the inputs through the layers of the network.
+    layer1 = sigmoid(np.dot(inputs, W1))
+    layer2 = sigmoid(np.dot(layer1, W2))
+    outputs = sigmoid(np.dot(layer2, W3))
+    
+    # Scale outputs to the range of the robot's joints [-pi/2, pi/2]
+    data.ctrl = np.clip(outputs, -np.pi/2, np.pi/2)
+    
+    # Save movement to history
+    HISTORY.append(to_track[0].xpos.copy())
 
 def show_qpos_history(history:list):
     # Convert list of [x,y,z] positions to numpy array
@@ -130,9 +158,10 @@ def main():
     geoms = world.spec.worldbody.find_all(mujoco.mjtObj.mjOBJ_GEOM)
     to_track = [data.bind(geom) for geom in geoms if "core" in geom.name]
 
-    # Set the control callback function
+    ########### Set the control callback function ############
     # This is called every time step to get the next action. 
-    mujoco.set_mjcb_control(lambda m,d: random_move(m, d, to_track))
+    mujoco.set_mjcb_control(lambda m,d: controller(m, d, to_track))
+    # mujoco.set_mjcb_control(lambda m,d: random_move(m, d, to_track))
 
     # This opens a viewer window and runs the simulation with the controller you defined
     # If mujoco.set_mjcb_control(None), then you can control the limbs yourself.
