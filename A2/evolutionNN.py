@@ -99,7 +99,7 @@ class RandomController(Controller):
         ##############################################
 
 class NNController(Controller):
-    def __init__(self, input_size=3, hidden_size=8, output_size=8, weights=None):
+    def __init__(self, input_size=3, hidden_size=8, output_size=8, weights:np.ndarray=None):
         if weights is not None:
             self.W1 = weights[:input_size * hidden_size].reshape(input_size, hidden_size)
             self.W2 = weights[input_size * hidden_size:hidden_size * (hidden_size + hidden_size)].reshape(hidden_size, hidden_size)
