@@ -99,10 +99,15 @@ class RandomController(Controller):
         ##############################################
 
 class NNController(Controller):
-    def __init__(self, input_size=3, hidden_size=8, output_size=8):
-        self.W1 = np.random.randn(input_size, hidden_size) * 0.2
-        self.W2 = np.random.randn(hidden_size, hidden_size) * 0.2
-        self.W3 = np.random.randn(hidden_size, output_size) * 0.2
+    def __init__(self, input_size=3, hidden_size=8, output_size=8, weights=None):
+        if weights is not None:
+            self.W1 = weights[:input_size * hidden_size].reshape(input_size, hidden_size)
+            self.W2 = weights[input_size * hidden_size:hidden_size * (hidden_size + hidden_size)].reshape(hidden_size, hidden_size)
+            self.W3 = weights[hidden_size * (hidden_size + hidden_size):].reshape(hidden_size, output_size)
+        else:
+            self.W1 = np.random.randn(input_size, hidden_size) * 0.2
+            self.W2 = np.random.randn(hidden_size, hidden_size) * 0.2
+            self.W3 = np.random.randn(hidden_size, output_size) * 0.2
 
     def move(self, model: mujoco._structs.MjModel, data: mujoco._structs.MjData, to_track) -> None:
         """Neural network controller with persistent weights, all in one function."""
