@@ -11,7 +11,8 @@ class EvolutionManager:
         self.hidden_size = hidden_size
         self.output_size = output_size
 
-        self.num_weights = (input_size * hidden_size) + (hidden_size * output_size)
+        self.num_weights =  (input_size * hidden_size) + \
+                            (hidden_size * hidden_size) + (hidden_size * output_size)
         self.evaluate_fitness = get_furthest_distance
         
         # Setup DEAP framework
@@ -29,10 +30,11 @@ class EvolutionManager:
         # Register genetic operators
         self.toolbox.register("evaluate", self.evaluate_individual)
         self.toolbox.register("mate", tools.cxTwoPoint) # Two-point crossover, keeping individual length constant
-        self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.2, indpd=0.1) # Gaussian mutation
+        self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.2, indpb=0.1) # Gaussian mutation
         self.toolbox.register("select", tools.selTournament, tournsize=5) # Tournament selection, picking best of 5
         
     def evaluate_individual(self, individual):
+        print("Evaluating individual")
         experiment = ExperimentRunner()
         controller = NNController(input_size=self.input_size, 
                                   hidden_size=self.hidden_size, 
@@ -40,10 +42,10 @@ class EvolutionManager:
                                   weights=np.array(individual))
         result = experiment._run_experiment(
             controller=controller,
-            simulation_steps=500_000,
+            simulation_steps=5_000,
         )
         fitness = self.evaluate_fitness(result)
-        return fitness
+        return (fitness,) # Return a tuple of fitness
     
     def run_evolution(self, population_size=50, generations=20, cx_prob=0.5, mut_prob=0.2):
         pop = self.toolbox.population(population_size)

@@ -99,11 +99,12 @@ class RandomController(Controller):
         ##############################################
 
 class NNController(Controller):
-    def __init__(self, input_size=3, hidden_size=8, output_size=8, weights:np.ndarray=None):
+    def __init__(self, input_size=15, hidden_size=8, output_size=8, weights:np.ndarray=None):
+        super().__init__()
         if weights is not None:
             self.W1 = weights[:input_size * hidden_size].reshape(input_size, hidden_size)
-            self.W2 = weights[input_size * hidden_size:hidden_size * (hidden_size + hidden_size)].reshape(hidden_size, hidden_size)
-            self.W3 = weights[hidden_size * (hidden_size + hidden_size):].reshape(hidden_size, output_size)
+            self.W2 = weights[input_size * hidden_size:input_size * hidden_size + (hidden_size * hidden_size)].reshape(hidden_size, hidden_size)
+            self.W3 = weights[input_size * hidden_size + (hidden_size * hidden_size):].reshape(hidden_size, output_size)
         else:
             self.W1 = np.random.randn(input_size, hidden_size) * 0.2
             self.W2 = np.random.randn(hidden_size, hidden_size) * 0.2
@@ -130,21 +131,6 @@ class NNController(Controller):
 
         # Save movement to history
         self.history.append(to_track[0].xpos.copy())
-    
-    #helper function to acsess weights 
-    def get_params(self):
-        return np.concatenate([self.W1.ravel(), self.W2.ravel(), self.W3.ravel()])
-    
-    #helper function to reshape flat vectors into correct weight matrices
-    def set_params(self, params):
-        p1 = self.W1.size
-        p2 = self.W3.size
-        p3 = self.W3.size
-        assert len(params) == p1+p2+p3
-
-        self.w1 = params[0:p1].reshape(self.w1.shape)
-        self.w2 = params[0:p2].reshape(self.w2.shape) 
-        self.w3 = params[0:p3].reshape(self.w3.shape)
 
     def clear(self): # TODO: MAKE RESET WEIGHTS
         super().clear()
