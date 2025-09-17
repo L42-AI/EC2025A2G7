@@ -1,11 +1,14 @@
 from typing import Optional
 from pathlib import Path
+from tqdm import tqdm
 
 from ariel.simulation.environments import SimpleFlatWorld
 
 from run_sim import main
 from ctm_types import WORLD_MAP, CONTROLLER_MAP, WorldType, ControllerType, History
 from evolutionNN import RandomController
+from fitness_functions import get_furthest_distance
+from visualize import visualise_furthest_point, show_qpos_history
 
 from export import export_results
 
@@ -23,7 +26,7 @@ class ExperimentRunner:
         n: int,
         controller_name: str,
         world_name: str = SimpleFlatWorld.__name__,
-        simulation_steps: int = 2_000_000,
+        simulation_steps: int = 1_000_000,
     ):
         
         assert world_name in WORLD_MAP, "Invalid world name, choose from: " + ", ".join(WORLD_MAP.keys())
@@ -31,8 +34,9 @@ class ExperimentRunner:
 
         dir = Path(__file__).parent / "results"
         dir.mkdir(parents=True, exist_ok=True)
+        furthest_points = []
 
-        for i in range(n):
+        for i in tqdm(range(n)):
 
             world = WORLD_MAP[world_name]()
             controller = CONTROLLER_MAP[controller_name]()
@@ -45,8 +49,11 @@ class ExperimentRunner:
                 record_video=False,
             )
 
-            path = dir / f"experiment_{world_name}_{controller_name}_{190 + i + 1}.npz"
+            path = dir / f"experiment_{world_name}_{controller_name}_{190 + i + 1}.npy"
             export_results(path, history)
+            furthest_points.append(get_furthest_distance(history))
+        
+        visualise_furthest_point(furthest_points)
 
     def _run_experiment(
         self,
