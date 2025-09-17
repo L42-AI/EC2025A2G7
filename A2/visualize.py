@@ -10,6 +10,7 @@ def visualise_furthest_point(furthest_points: list):
     plt.xlabel('Furthest Point (XY Plane)')
     plt.ylabel('Frequency')
     plt.grid(True)
+    plt.savefig('furthest_points_histogram.png')
     plt.show()
 
 def show_qpos_history(history:list):
