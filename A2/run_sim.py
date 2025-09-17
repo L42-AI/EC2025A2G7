@@ -1,4 +1,3 @@
-from typing import Literal
 import mujoco
 from mujoco import viewer
 from tqdm import tqdm
@@ -7,10 +6,7 @@ from ariel.utils.renderers import video_renderer
 from ariel.utils.video_recorder import VideoRecorder
 from ariel.body_phenotypes.robogen_lite.prebuilt_robots.gecko import gecko
 
-from ctm_types import (
-    WorldType, WORLD_MAP,
-    ControllerType, CONTROLLER_MAP,
-)
+from ctm_types import WorldType, ControllerType
 
 def init_sim(world: WorldType):
     mujoco.set_mjcb_control(None) # DO NOT REMOVE
@@ -23,18 +19,12 @@ def init_sim(world: WorldType):
     return model, data, to_track
 
 def main( 
-    world_name: str = "SimpleFlatWorld",
-    controller_name: str = "RandomController",
+    world: WorldType,
+    controller: ControllerType,
     visualise: bool = False,
     record_video: bool = False,
     simulation_steps: int = 10_000,
 ):
-    
-    assert world_name in WORLD_MAP, "Invalid world name, choose from: " + ", ".join(WORLD_MAP.keys())
-    assert controller_name in CONTROLLER_MAP, "Invalid controller name, choose from: " + ", ".join(CONTROLLER_MAP.keys())
-
-    world = WORLD_MAP[world_name]()
-    controller = CONTROLLER_MAP[controller_name]()
 
     ############################## INITIALISE SIMULATION ##############################
     mujoco.set_mjcb_control(None) # DO NOT REMOVE
