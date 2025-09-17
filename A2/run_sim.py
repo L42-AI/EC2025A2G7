@@ -42,11 +42,7 @@ def main(
     if record_video:
         # Non-default VideoRecorder options
         PATH_TO_VIDEO_FOLDER = "./__videos__"
-        video_recorder = VideoRecorder(
-            width=320,
-            height=240,
-            output_folder=PATH_TO_VIDEO_FOLDER
-        )
+        video_recorder = VideoRecorder(output_folder=PATH_TO_VIDEO_FOLDER)
 
         # Render with video recorder
         video_renderer(

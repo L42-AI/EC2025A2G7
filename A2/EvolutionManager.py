@@ -13,8 +13,12 @@ class EvolutionManager:
         self.hidden_size = hidden_size
         self.output_size = output_size
 
-        self.num_weights =  (input_size * hidden_size) + \
-                            (hidden_size * hidden_size) + (hidden_size * output_size)
+        self.num_weights =  (
+            (input_size * hidden_size)
+            + (hidden_size * hidden_size)
+            + (hidden_size * output_size)
+        )
+        
         self.evaluate_fitness = get_furthest_distance
         
         # Setup DEAP framework
@@ -48,7 +52,7 @@ class EvolutionManager:
         fitness = self.evaluate_fitness(result)
         return (fitness,) # Return a tuple of fitness
     
-    def run_evolution(self, population_size=200, generations=20, cx_prob=0.5, mut_prob=0.2):
+    def run_evolution(self, population_size=200, generations=20, cx_prob=0.8, mut_prob=0.3):
         pop = self.toolbox.population(population_size)
         print("Starting evolution with population size:", population_size)
 
