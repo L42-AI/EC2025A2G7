@@ -130,6 +130,21 @@ class NNController(Controller):
 
         # Save movement to history
         self.history.append(to_track[0].xpos.copy())
+    
+    #helper function to acsess weights 
+    def get_params(self):
+        return np.concatenate([self.W1.ravel(), self.W2.ravel(), self.W3.ravel()])
+    
+    #helper function to reshape flat vectors into correct weight matrices
+    def set_params(self, params):
+        p1 = self.W1.size
+        p2 = self.W3.size
+        p3 = self.W3.size
+        assert len(params) == p1+p2+p3
+
+        self.w1 = params[0:p1].reshape(self.w1.shape)
+        self.w2 = params[0:p2].reshape(self.w2.shape) 
+        self.w3 = params[0:p3].reshape(self.w3.shape)
 
     def clear(self): # TODO: MAKE RESET WEIGHTS
         super().clear()
