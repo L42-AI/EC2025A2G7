@@ -105,7 +105,7 @@ class NNController(Controller):
         self.W3 = np.random.randn(hidden_size, output_size) * 0.2
 
     def move(self, model: mujoco._structs.MjModel, data: mujoco._structs.MjData, to_track) -> None:
-        """Neural network controller met persistente gewichten, alles in één functie."""
+        """Neural network controller with persistent weights, all in one function."""
 
         # Forward pass
         inputs = data.qpos
@@ -113,14 +113,14 @@ class NNController(Controller):
         layer2 = sigmoid(np.dot(layer1, self.W2))
         outputs = sigmoid(np.dot(layer2, self.W3))
 
-        # Scale outputs naar [-pi/2, pi/2]
+        # Scale outputs to [-pi/2, pi/2]
         scaled_outputs = (outputs - 0.5) * np.pi
 
-        # Voeg delta toe voor smooth beweging
+        # Add delta for smooth movement
         delta = 0.05
         data.ctrl += scaled_outputs * delta
 
-        # Clip naar joint limits
+        # Clip to joint limits
         data.ctrl = np.clip(data.ctrl, -np.pi / 2, np.pi / 2)
 
         # Save movement to history
