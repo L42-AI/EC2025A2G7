@@ -1,7 +1,6 @@
 from deap import base, creator, tools, algorithms
 import random
 import numpy as np
-import mujoco
 from fitness_functions import get_furthest_distance
 from evolutionNN import NNController
 from experiment_runner import ExperimentRunner
