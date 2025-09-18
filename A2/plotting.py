@@ -8,10 +8,11 @@ def get_logbook():
     print(logbook.select("avg"))
     # Option 2: use the field stored in the object
     print(manager.logbook.select("max"))
+
     return logbook
 
-
-
+if __name__ == "__main__":
+    get_logbook()
 
 
 
