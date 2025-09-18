@@ -1,10 +1,12 @@
+from functools import partial
+import multiprocessing as mp
 import random
 
 import numpy as np
 from deap import base, creator, tools, algorithms
 
-from fitness_functions import get_furthest_distance
-from evolutionNN import NNController
+from fitness_functions import get_furthest_xyz_distance
+from A2.Controller import NNController
 from experiment_runner import ExperimentRunner
 
 class EvolutionManager:
@@ -23,13 +25,13 @@ class EvolutionManager:
             + (hidden_size * hidden_size)
             + (hidden_size * output_size)
         )
-        
-        self.evaluate_fitness = get_furthest_distance
-        
+
+        self.evaluate_fitness = partial(get_furthest_xyz_distance, target=np.array([10.0, 0.0, 0.0]))
+
         # Setup DEAP framework
-        creator.create("FitnessMax", base.Fitness, weights=(1.0,)) # Maximize fitness, weights represents minimize (-1.0)/maximize(1.0)
-        creator.create("Individual", list, fitness=creator.FitnessMax) # list is used to store weights in
-        
+        creator.create("FitnessMin", base.Fitness, weights=(-1.0,)) # Maximize fitness, weights represents minimize (-1.0)/maximize(1.0)
+        creator.create("Individual", list, fitness=creator.FitnessMin) # list is used to store weights in
+
         # Initialize toolbox
         self.toolbox = base.Toolbox()
         self.toolbox.register("attr_float", random.uniform, -1.0, 1.0) # Weights between -1 and 1
@@ -37,9 +39,13 @@ class EvolutionManager:
         self.toolbox.register("individual", tools.initRepeat, creator.Individual, self.toolbox.attr_float, n=self.num_weights)
         # Create a population of individuals
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
-        
-        # Register genetic operators
+
+        # # Setup multiprocessing pool
+        # pool = mp.Pool(processes=mp.cpu_count())
+        # self.toolbox.register("map", pool.map)
+
         self.toolbox.register("evaluate", self.evaluate_individual)
+
         self.toolbox.register("mate", tools.cxTwoPoint) # Two-point crossover, keeping individual length constant
         self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.2, indpb=0.1) # Gaussian mutation
         self.toolbox.register("select", tools.selTournament, tournsize=5) # Tournament selection, picking best of 5
@@ -70,7 +76,6 @@ class EvolutionManager:
         stats.register("std", np.std)
         stats.register("min", np.min)
         stats.register("max", np.max)
-
 
         # Run evolution
         pop, self.logbook = algorithms.eaSimple(

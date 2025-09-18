@@ -64,4 +64,4 @@ class NNController(Controller):
         layer1 = np.tanh(np.dot(inputs, self.W1))
         layer2 = np.tanh(np.dot(layer1, self.W2))
         outputs = np.tanh(np.dot(layer2, self.W3))
-        return (outputs - 0.5) * np.pi # Scale outputs to [-pi/2, pi/2]
+        return outputs * (np.pi / 2) # Scale outputs to [-pi/2, pi/2]
