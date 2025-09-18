@@ -5,7 +5,7 @@ import random
 import numpy as np
 from deap import base, creator, tools, algorithms
 
-from fitness_functions import get_furthest_xyz_distance
+from fitness_functions import get_best_closeness_to_xyz
 from Controller import NNController
 from experiment_runner import ExperimentRunner
 
@@ -26,7 +26,7 @@ class EvolutionManager:
             + (hidden_size * output_size)
         )
 
-        self.evaluate_fitness = partial(get_furthest_xyz_distance, target=np.array([0.0, -10.0, 0.0]))
+        self.evaluate_fitness = partial(get_best_closeness_to_xyz, target=np.array([0.0, -10.0, 0.0]))
 
         # Setup DEAP framework
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,)) # Maximize fitness, weights represents minimize (-1.0)/maximize(1.0)
