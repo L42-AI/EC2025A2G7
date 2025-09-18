@@ -1,32 +1,25 @@
+from functools import partial
 from typing import Optional
 from pathlib import Path
 from tqdm import tqdm
 
+import numpy as np
 from ariel.simulation.environments import SimpleFlatWorld
 
 from run_sim import main
 from ctm_types import WORLD_MAP, CONTROLLER_MAP, WorldType, ControllerType, History
 from Controller import RandomController
-from fitness_functions import get_furthest_xyz_distance
+from fitness_functions import get_best_closeness_to_xyz
 from visualize import visualise_furthest_point, show_qpos_history
 
-from export import export_results
-
 class ExperimentRunner:
-
-    def run_random(self, n: int = 500):
-        self._run_experiments(
-            n=n,
-            controller_name=RandomController.__name__,
-            world_name=SimpleFlatWorld.__name__,
-        )
     
-    def _run_experiments(
+    def baseline(
         self,
         n: int,
-        controller_name: str,
+        controller_name: str = RandomController.__name__,
         world_name: str = SimpleFlatWorld.__name__,
-        simulation_steps: int = 1_000_000,
+        simulation_steps: int = 10_000,
     ):
         
         assert world_name in WORLD_MAP, "Invalid world name, choose from: " + ", ".join(WORLD_MAP.keys())
@@ -35,6 +28,8 @@ class ExperimentRunner:
         dir = Path(__file__).parent / "results"
         dir.mkdir(parents=True, exist_ok=True)
         furthest_points = []
+
+        fitness_func = partial(get_best_closeness_to_xyz, target=np.array([0.0, -10.0, 0.0]))
 
         for i in tqdm(range(n)):
 
@@ -49,9 +44,9 @@ class ExperimentRunner:
                 record_video=False,
             )
 
-            path = dir / f"experiment_{world_name}_{controller_name}_{190 + i + 1}.npy"
-            export_results(path, history)
-            furthest_points.append(get_furthest_xyz_distance(history))
+            path = dir / f"experiment_{world_name}_{controller_name}_{i + 1}.npy"
+            np.save(path, history)
+            furthest_points.append(fitness_func(history))
         
         visualise_furthest_point(furthest_points)
 
