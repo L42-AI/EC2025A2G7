@@ -8,10 +8,15 @@ from evolutionNN import NNController
 from experiment_runner import ExperimentRunner
 
 class EvolutionManager:
-    def __init__(self, input_size: int = 15, hidden_size: int = 64, output_size: int = 8):
+
+
+
+    def __init__(self, input_size: int = 15, hidden_size: int = 64, output_size: int = 8, logbook=None):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
+
+        self.logbook = logbook
 
         self.num_weights =  (
             (input_size * hidden_size)
@@ -68,7 +73,7 @@ class EvolutionManager:
 
 
         # Run evolution
-        pop, logbook = algorithms.eaSimple(
+        pop, self.logbook = algorithms.eaSimple(
             pop,
             self.toolbox,
             cxpb=cx_prob,
@@ -80,8 +85,8 @@ class EvolutionManager:
         )
 
         # Extract best fitness history
-        gen = logbook.select("gen")
-        max_fitness = logbook.select("max")
+        gen = self.logbook.select("gen")
+        max_fitness = self.logbook.select("max")
 
         # Print progression
         print("Fitness progression:")
@@ -91,7 +96,7 @@ class EvolutionManager:
         best_ind = hof[0]
         # print("Best individual is:", best_ind, "Fitness:", best_ind.fitness.values)
 
-        return best_ind, logbook
+        return best_ind, self.logbook
             
     
         
