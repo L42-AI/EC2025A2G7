@@ -1,18 +1,24 @@
-from deap import base, creator, tools, algorithms
 import random
+
 import numpy as np
+from deap import base, creator, tools, algorithms
+
 from fitness_functions import get_furthest_distance
 from evolutionNN import NNController
 from experiment_runner import ExperimentRunner
 
 class EvolutionManager:
-    def __init__(self, input_size: int, hidden_size: int, output_size: int):
+    def __init__(self, input_size: int = 15, hidden_size: int = 64, output_size: int = 8):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
 
-        self.num_weights =  (input_size * hidden_size) + \
-                            (hidden_size * hidden_size) + (hidden_size * output_size)
+        self.num_weights =  (
+            (input_size * hidden_size)
+            + (hidden_size * hidden_size)
+            + (hidden_size * output_size)
+        )
+        
         self.evaluate_fitness = get_furthest_distance
         
         # Setup DEAP framework
@@ -34,7 +40,6 @@ class EvolutionManager:
         self.toolbox.register("select", tools.selTournament, tournsize=5) # Tournament selection, picking best of 5
         
     def evaluate_individual(self, individual):
-        print("Evaluating individual")
         experiment = ExperimentRunner()
         controller = NNController(input_size=self.input_size, 
                                   hidden_size=self.hidden_size, 
@@ -42,18 +47,51 @@ class EvolutionManager:
                                   weights=np.array(individual))
         result = experiment._run_experiment(
             controller=controller,
-            simulation_steps=5_000,
+            simulation_steps=6000,
         )
         fitness = self.evaluate_fitness(result)
         return (fitness,) # Return a tuple of fitness
     
-    def run_evolution(self, population_size=50, generations=20, cx_prob=0.5, mut_prob=0.2):
+    def run_evolution(self, population_size=200, generations=20, cx_prob=0.8, mut_prob=0.3):
         pop = self.toolbox.population(population_size)
         print("Starting evolution with population size:", population_size)
-        best_ind = algorithms.eaSimple(pop, self.toolbox, cxpb=cx_prob, mutpb=mut_prob, ngen=generations, verbose=True)
-        best_ind = tools.selBest(pop, 1)[0]
-        print("Best individual is:", best_ind)
-        return best_ind
+
+        # Track best fitness
+        hof = tools.HallOfFame(1)
+
+        # Track stats across generations
+        stats = tools.Statistics(lambda ind: ind.fitness.values)
+        stats.register("avg", np.mean)
+        stats.register("std", np.std)
+        stats.register("min", np.min)
+        stats.register("max", np.max)
+
+
+        # Run evolution
+        pop, logbook = algorithms.eaSimple(
+            pop,
+            self.toolbox,
+            cxpb=cx_prob,
+            mutpb=mut_prob,
+            ngen=generations,
+            stats=stats,
+            halloffame=hof,
+            verbose=True
+        )
+
+        # Extract best fitness history
+        gen = logbook.select("gen")
+        max_fitness = logbook.select("max")
+
+        # Print progression
+        print("Fitness progression:")
+        for g, f in zip(gen, max_fitness):
+            print(f"Gen {g}: Best Fitness = {f}")
+
+        best_ind = hof[0]
+        # print("Best individual is:", best_ind, "Fitness:", best_ind.fitness.values)
+
+        return best_ind, logbook
             
     
         
