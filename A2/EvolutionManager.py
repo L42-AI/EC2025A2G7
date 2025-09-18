@@ -2,6 +2,7 @@ from functools import partial
 import multiprocessing as mp
 import random
 import time as t
+from pathlib import Path
 mp.set_start_method("spawn", force=True)  # important on macOS
 
 import numpy as np
@@ -32,12 +33,12 @@ def evaluate_individual(individual, input_size: int, hidden_size: int, output_si
     
 class EvolutionManager:
 
-    def __init__(self, input_size: int = 15, hidden_size: int = 64, output_size: int = 8, logbook=None):
+
+
+    def __init__(self, input_size: int = 15, hidden_size: int = 64, output_size: int = 8):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
-
-        self.logbook = logbook
 
         self.num_weights =  (
             (input_size * hidden_size)
@@ -60,11 +61,27 @@ class EvolutionManager:
         self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.2, indpb=0.1) # Gaussian mutation
         self.toolbox.register("select", tools.selTournament, tournsize=5) # Tournament selection, picking best of 5
 
-        eval_func = partial(evaluate_individual, input_size=self.input_size, hidden_size=self.hidden_size, output_size=self.output_size)
-        self.toolbox.register("evaluate", eval_func)
+        self.toolbox.register("evaluate", evaluate_individual, input_size=input_size, hidden_size=hidden_size, output_size=output_size)
 
+    @staticmethod
+    #save generation-wise statistics from DEAP logbook to a .npz file     
+    def save_logbook(logbook, tag:str, run_id:int, out_dir="logbook_results"):
+        gen = np.array(logbook.select("gen"))
+        avg = np.array(logbook.select("avg"))
+        std = np.array(logbook.select("std"))
+        min = np.array(logbook.select("min"))
+        max = np.array(logbook.select("max"))
+
+        out = Path(out_dir) / f"{tag}_run{run_id:02d}.npz"
+        out.parent.mkdir(parents=True, exist_ok=True)
+
+        np.savez(out, gen=gen, avg=avg, std=std, min=min, max=max)
+        print("saved logbook in {out}")
+        return None   
+    
     def run_evolution(self, population_size=200, generations=20, cx_prob=0.8, mut_prob=0.3, multi: bool=True):
-        pop = self.toolbox.population(population_size)
+        print("Starting evolution with population size:", population_size)
+        pop = self.toolbox.population(n=population_size)
 
         # Track best fitness
         hof = tools.HallOfFame(1)
@@ -117,8 +134,13 @@ class EvolutionManager:
 
         # print("Best individual is:", best_ind, "Fitness:", best_ind.fitness.values)
 
+        self.save_logbook(logbook, tag="EA1", run_id=1, out_dir="A2/results")
+
+
         return hof[0], logbook
-            
+    
+    
+   
     
         
         
