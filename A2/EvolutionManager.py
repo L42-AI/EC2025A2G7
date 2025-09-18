@@ -13,7 +13,7 @@ from Controller import NNController
 from experiment_runner import ExperimentRunner
 
 # fitness_func = get_best_distance_from_start
-fitness_func = partial(get_best_closeness_to_xyz, target=np.array([0.0, -10.0, 0.0]))
+fitness_func = partial(get_target_fitness, target=np.array([0.0, 10.0, 0.0]))
 
 def evaluate_individual(individual, input_size: int, hidden_size: int, output_size: int) -> tuple:
     experiment = ExperimentRunner()
@@ -45,9 +45,6 @@ class EvolutionManager:
             + 2 * (hidden_size * hidden_size)
             + (hidden_size * output_size)
         )
-
-        self.evaluate_fitness = partial(get_target_fitness, target=np.array([0.0, 10.0, 0.0]))
-        # self.evaluate_fitness = partial(get_best_closeness_to_xyz, target=np.array([0.0, -10.0, 0.0]))
 
         # Setup DEAP framework
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,)) # Maximize fitness, weights represents minimize (-1.0)/maximize(1.0)
@@ -101,18 +98,24 @@ class EvolutionManager:
             with ctx.Pool(mp.cpu_count()) as pool:
                 self.toolbox.register("map", pool.map)
 
-                pop, logbook = algorithms.eaSimple(
+                pop, logbook = algorithms.eaMuPlusLambda(
                     pop, self.toolbox,
-                    cxpb=cx_prob, mutpb=mut_prob,
+                    mu=population_size,
+                    lambda_=population_size,
+                    cxpb=cx_prob,
+                    mutpb=mut_prob,
                     ngen=generations,
                     stats=stats,
                     halloffame=hof,
                     verbose=True
                 )
         else:
-            pop, logbook = algorithms.eaSimple(
+            pop, logbook = algorithms.eaMuPlusLambda(
                 pop, self.toolbox,
-                cxpb=cx_prob, mutpb=mut_prob,
+                mu=population_size,
+                lambda_=population_size,
+                cxpb=cx_prob,
+                mutpb=mut_prob,
                 ngen=generations,
                 stats=stats,
                 halloffame=hof,
