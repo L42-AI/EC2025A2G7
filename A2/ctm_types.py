@@ -14,12 +14,12 @@ WorldType = (
 
 WORLD_MAP: dict[str, type[WorldType]] = {
     "SimpleFlatWorld": SimpleFlatWorld,
-    "AmphitheatreTerrainWorld": AmphitheatreTerrainWorld,
-    "BoxyRugged": BoxyRugged,
-    "CraterTerrainWorld": CraterTerrainWorld,
-    "PyramidWorld": PyramidWorld,
     "RuggedTerrainWorld": RuggedTerrainWorld,
     "TiltedFlatWorld": TiltedFlatWorld,
+    "BoxyRugged": BoxyRugged,
+    "AmphitheatreTerrainWorld": AmphitheatreTerrainWorld,
+    "CraterTerrainWorld": CraterTerrainWorld,
+    "PyramidWorld": PyramidWorld,
 }
 
 ControllerType = RandomController | NNController

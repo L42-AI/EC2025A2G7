@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 
 __all__ = [
@@ -7,6 +8,19 @@ __all__ = [
     "distance_to_target",
     "turning_in_place",
 ]
+
+def xyz_displacement(xyz1, xyz2) -> float:
+    """
+    Calculate the displacement between two points in 3D space.
+
+    Parameters:
+    xyz1 (tuple): Coordinates of the first point (x1, y1, z1).
+    xyz2 (tuple): Coordinates of the second point (x2, y2, z2).
+
+    Returns:
+    float: The Euclidean distance between the two points.
+    """
+    return ((xyz1[0] - xyz2[0]) ** 2 + (xyz1[1] - xyz2[1]) ** 2 + (xyz1[2] - xyz2[2]) ** 2) ** 0.5
 
 def xy_displacement(xy1, xy2) -> float:
     """
@@ -127,13 +141,23 @@ def turning_in_place(xy_history) -> float:
 
     return fitness
 
-def get_furthest_distance(history: list):
+def get_furthest_xy_distance(history: list, target: Optional[np.ndarray] = None) -> float:
     """Calculate and print the furthest point reached in the XY plane."""
+    if target is None:
+        target = history[0][:2]
+    
     max_distance = 0.0
     for step in history:
-        displacement = xy_displacement(history[0][:2], step[:2])
+        displacement = xy_displacement(target, step[:2])
 
         if displacement > max_distance:
             max_distance = displacement
 
     return max_distance
+
+def get_furthest_xyz_distance(history: list, target: Optional[np.ndarray] = None) -> float:
+    """Calculate and print the furthest point reached in the XYZ plane."""
+    if target is None:
+        target = history[0][:3]
+
+    return xyz_displacement(target, history[-1][:3])
