@@ -6,7 +6,7 @@ import numpy as np
 from deap import base, creator, tools, algorithms
 
 from fitness_functions import get_furthest_xyz_distance
-from A2.Controller import NNController
+from Controller import NNController
 from experiment_runner import ExperimentRunner
 
 class EvolutionManager:
@@ -22,7 +22,7 @@ class EvolutionManager:
 
         self.num_weights =  (
             (input_size * hidden_size)
-            + (hidden_size * hidden_size)
+            + 2 * (hidden_size * hidden_size)
             + (hidden_size * output_size)
         )
 
