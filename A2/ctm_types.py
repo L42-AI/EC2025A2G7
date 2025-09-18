@@ -1,6 +1,6 @@
 import numpy as np
 from ariel.simulation.environments import *
-from evolutionNN import RandomController, NNController
+from A2.Controller import RandomController, NNController
 
 WorldType = (
     SimpleFlatWorld |

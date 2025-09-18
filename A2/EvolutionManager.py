@@ -6,7 +6,7 @@ import numpy as np
 from deap import base, creator, tools, algorithms
 
 from fitness_functions import get_furthest_xyz_distance
-from evolutionNN import NNController
+from A2.Controller import NNController
 from experiment_runner import ExperimentRunner
 
 class EvolutionManager:
