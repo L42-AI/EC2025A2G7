@@ -3,8 +3,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 import mujoco
 
-from utils import sigmoid
-
 class Controller(ABC):
     def __init__(self):
         self.history = []

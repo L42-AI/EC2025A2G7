@@ -8,15 +8,14 @@ mp.set_start_method("spawn", force=True)  # important on macOS
 import numpy as np
 from deap import base, creator, tools, algorithms
 
-from fitness_functions import get_best_closeness_to_xyz, get_best_distance_from_start, get_target_fitness
+from fitness_functions import get_best_closeness_to_xyz, get_best_distance_from_start, get_target_fitness, calc_linearity
 from Controller import NNController
-from experiment_runner import ExperimentRunner
+import run
 
 # fitness_func = get_best_distance_from_start
-fitness_func = partial(get_target_fitness, target=np.array([0.0, 10.0, 0.0]))
+fitness_func = partial(get_target_fitness, target=np.array([-10.0, 0.0, 0.0]))
 
 def evaluate_individual(individual, input_size: int, hidden_size: int, output_size: int) -> tuple:
-    experiment = ExperimentRunner()
     controller = NNController(
         input_size=input_size, 
         hidden_size=hidden_size, 
@@ -24,11 +23,11 @@ def evaluate_individual(individual, input_size: int, hidden_size: int, output_si
         weights=np.array(individual)
     )
 
-    result = experiment._run_experiment(
+    history = run.single(
         controller=controller,
         simulation_steps=6000,
     )
-    fitness = fitness_func(result)
+    fitness = fitness_func(history)
     return (fitness,) # Return a tuple of fitness
     
 class EvolutionManager:
