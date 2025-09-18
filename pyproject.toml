@@ -37,6 +37,7 @@ dependencies = [
   "pydantic>=2.11.7",
   "pydantic-settings>=2.10.1",
   "rich>=14.1.0",
+  "seaborn>=0.13.2",
   "shibuya>=2025.8.16",
   "sphinx-autoapi>=3.6.0",
   "sphinx-click>=6.0.0",

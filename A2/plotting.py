@@ -1,45 +1,47 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+# Load npz
+data = np.load("A2/results/EA1_run01.npz")
+gen = data["gen"]
+avg = data["avg"]
+std = data["std"]
+minv = data["min"]
+maxv = data["max"]
 
-def load_file(name:str):
-    data = np.load(name)
-    print(data.files)
+# Build tidy dataframe
+df = pd.DataFrame({
+    "Generation": gen,
+    "Average": avg,
+    "Std": std,
+    "Min": minv,
+    "Max": maxv
+})
 
-    gen = data["gen"]
-    avg = data["avg"]
-    std = data["std"]
-    minv = data["min"]
-    maxv = data["max"]
+# Moving average (window=3 generations as example)
+window = 3
+df["MovingAvg"] = df["Average"].rolling(window=window, center=True).mean()
+df["MovingStd"] = df["Average"].rolling(window=window, center=True).std()
 
-    print("Generations:", gen[:5], "...")
-    print("Avg fitness:", avg[:5], "...")
-    return gen, avg, std, minv, maxv
+# Plot
+plt.figure(figsize=(10,6))
 
-gen, avg, std, minv, maxv = load_file("A2/results/EA1_run01.npz")
+# Scatter of raw avg values per generation
+sns.scatterplot(data=df, x="Generation", y="Average", s=30, color="blue", alpha=0.5, label="Fitness")
 
+# Moving average line
+sns.lineplot(data=df, x="Generation", y="MovingAvg", color="purple", linewidth=2, label="Moving average")
 
-def plot_fitness(gen, avg, std, minv, maxv):
-    plt.figure(figsize=(8, 5))
-    plt.plot(gen, avg, label="average fitness")
-    plt.plot(gen, maxv, label="Max fitness")
-    plt.plot(gen, minv, label="Min fitness")
+# Shaded region = moving average ± std
+plt.fill_between(df["Generation"],
+                 df["MovingAvg"] - df["MovingStd"],
+                 df["MovingAvg"] + df["MovingStd"],
+                 alpha=0.2, color="red", label="moving ± std")
 
-    # Optional: add error bars with std
-    plt.fill_between(gen, avg - std, avg + std, color="gray", alpha=0.2, label="Std dev")
-
-    plt.xlabel("Generation")
-    plt.ylabel("Fitness")
-    plt.title("Evolution Progress (from npz)")
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.tight_layout()
-    plt.show()
-
-plot_fitness(gen, avg, std, minv, maxv)
-
-
-
-
-
-
+plt.xlabel("Generation")
+plt.ylabel("Fitness")
+plt.title("Evolution Progress with Moving Average")
+plt.legend()
+plt.tight_layout()
+plt.show()
