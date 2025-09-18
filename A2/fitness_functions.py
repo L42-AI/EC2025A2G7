@@ -161,3 +161,19 @@ def get_furthest_xyz_distance(history: list, target: Optional[np.ndarray] = None
         target = history[0][:3]
 
     return xyz_displacement(target, history[-1][:3])
+
+def get_target_fitness(history: list, target: Optional[np.ndarray] = None) -> float:
+    """Sum of all step-to-step displacements (path length)."""
+    if target is None:
+        target = history[0][:3]
+
+    # --- 1. Target distance ---
+    target_distance = xyz_displacement(target, history[-1][:3])
+    
+    # --- 2. Total movement ---
+    total_disp = sum(
+        xyz_displacement(history[i][:3], history[i+1][:3]) 
+        for i in range(len(history)-1)
+    )
+
+    return target_distance - 0.2 * total_disp

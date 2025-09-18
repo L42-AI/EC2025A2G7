@@ -5,7 +5,7 @@ import random
 import numpy as np
 from deap import base, creator, tools, algorithms
 
-from fitness_functions import get_furthest_xyz_distance
+from fitness_functions import get_furthest_xyz_distance, get_target_fitness
 from Controller import NNController
 from experiment_runner import ExperimentRunner
 
@@ -26,7 +26,7 @@ class EvolutionManager:
             + (hidden_size * output_size)
         )
 
-        self.evaluate_fitness = partial(get_furthest_xyz_distance, target=np.array([0.0, -10.0, 0.0]))
+        self.evaluate_fitness = partial(get_target_fitness, target=np.array([0.0, 10.0, 0.0]))
 
         # Setup DEAP framework
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,)) # Maximize fitness, weights represents minimize (-1.0)/maximize(1.0)
@@ -43,7 +43,7 @@ class EvolutionManager:
         self.toolbox.register("evaluate", self.evaluate_individual)
 
         self.toolbox.register("mate", tools.cxTwoPoint) # Two-point crossover, keeping individual length constant
-        self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.2, indpb=0.1) # Gaussian mutation
+        self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.3, indpb=0.3) # Gaussian mutation
         self.toolbox.register("select", tools.selTournament, tournsize=5) # Tournament selection, picking best of 5
         
     def evaluate_individual(self, individual):
@@ -76,9 +76,12 @@ class EvolutionManager:
         stats.register("max", np.max)
 
         pop = self.toolbox.population(population_size)
-        pop, logbook = algorithms.eaSimple(
+        pop, logbook = algorithms.eaMuPlusLambda(
             pop, self.toolbox,
-            cxpb=0.8, mutpb=0.3,
+            mu=population_size,
+            lambda_=population_size,
+            cxpb=cx_prob,
+            mutpb=mut_prob,
             ngen=generations,
             stats=stats,
             halloffame=hof,
