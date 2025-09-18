@@ -11,8 +11,6 @@ from experiment_runner import ExperimentRunner
 
 class EvolutionManager:
 
-
-
     def __init__(self, input_size: int = 15, hidden_size: int = 64, output_size: int = 8, logbook=None):
         self.input_size = input_size
         self.hidden_size = hidden_size
