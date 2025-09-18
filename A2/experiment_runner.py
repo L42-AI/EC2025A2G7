@@ -6,7 +6,7 @@ from ariel.simulation.environments import SimpleFlatWorld
 
 from run_sim import main
 from ctm_types import WORLD_MAP, CONTROLLER_MAP, WorldType, ControllerType, History
-from evolutionNN import RandomController
+from Controller import RandomController
 from fitness_functions import get_furthest_xyz_distance
 from visualize import visualise_furthest_point, show_qpos_history
 

@@ -2,7 +2,7 @@ from ariel.simulation.environments.simple_flat_world import SimpleFlatWorld
 from experiment_runner import ExperimentRunner
 from utils import read_in_all_csv_in_dir, read_in_all_npy_in_dir
 from EvolutionManager import EvolutionManager
-from evolutionNN import NNController, RandomController
+from Controller import NNController, RandomController
 import numpy as np
 from run_sim import main
 from ctm_types import WORLD_MAP
