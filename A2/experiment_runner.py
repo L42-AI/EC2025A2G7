@@ -7,7 +7,7 @@ from ariel.simulation.environments import SimpleFlatWorld
 from run_sim import main
 from ctm_types import WORLD_MAP, CONTROLLER_MAP, WorldType, ControllerType, History
 from Controller import RandomController
-from fitness_functions import get_furthest_xyz_distance
+from fitness_functions import get_best_closeness_to_xyz
 from visualize import visualise_furthest_point, show_qpos_history
 
 from export import export_results
@@ -51,7 +51,7 @@ class ExperimentRunner:
 
             path = dir / f"experiment_{world_name}_{controller_name}_{190 + i + 1}.npy"
             export_results(path, history)
-            furthest_points.append(get_furthest_xyz_distance(history))
+            furthest_points.append(get_best_closeness_to_xyz(history))
         
         visualise_furthest_point(furthest_points)
 
