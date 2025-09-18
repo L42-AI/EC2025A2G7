@@ -21,7 +21,7 @@ class EvolutionManager:
             + (hidden_size * output_size)
         )
 
-        self.evaluate_fitness = partial(get_furthest_xyz_distance, target=np.array([10.0, 0.0, 0.0]))
+        self.evaluate_fitness = partial(get_furthest_xyz_distance, target=np.array([0.0, -10.0, 0.0]))
 
         # Setup DEAP framework
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,)) # Maximize fitness, weights represents minimize (-1.0)/maximize(1.0)
@@ -35,10 +35,6 @@ class EvolutionManager:
         # Create a population of individuals
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
 
-        # # Setup multiprocessing pool
-        # pool = mp.Pool(processes=mp.cpu_count())
-        # self.toolbox.register("map", pool.map)
-
         self.toolbox.register("evaluate", self.evaluate_individual)
 
         self.toolbox.register("mate", tools.cxTwoPoint) # Two-point crossover, keeping individual length constant
@@ -47,10 +43,13 @@ class EvolutionManager:
         
     def evaluate_individual(self, individual):
         experiment = ExperimentRunner()
-        controller = NNController(input_size=self.input_size, 
-                                  hidden_size=self.hidden_size, 
-                                  output_size=self.output_size, 
-                                  weights=np.array(individual))
+        controller = NNController(
+            input_size=self.input_size, 
+            hidden_size=self.hidden_size, 
+            output_size=self.output_size, 
+            weights=np.array(individual)
+        )
+
         result = experiment._run_experiment(
             controller=controller,
             simulation_steps=6000,
@@ -59,7 +58,6 @@ class EvolutionManager:
         return (fitness,) # Return a tuple of fitness
     
     def run_evolution(self, population_size=200, generations=20, cx_prob=0.8, mut_prob=0.3):
-        pop = self.toolbox.population(population_size)
         print("Starting evolution with population size:", population_size)
 
         # Track best fitness
@@ -72,12 +70,10 @@ class EvolutionManager:
         stats.register("min", np.min)
         stats.register("max", np.max)
 
-        # Run evolution
+        pop = self.toolbox.population(population_size)
         pop, logbook = algorithms.eaSimple(
-            pop,
-            self.toolbox,
-            cxpb=cx_prob,
-            mutpb=mut_prob,
+            pop, self.toolbox,
+            cxpb=0.8, mutpb=0.3,
             ngen=generations,
             stats=stats,
             halloffame=hof,
@@ -86,17 +82,16 @@ class EvolutionManager:
 
         # Extract best fitness history
         gen = logbook.select("gen")
-        max_fitness = logbook.select("max")
+        min_fitness = logbook.select("min")
 
         # Print progression
         print("Fitness progression:")
-        for g, f in zip(gen, max_fitness):
+        for g, f in zip(gen, min_fitness):
             print(f"Gen {g}: Best Fitness = {f}")
 
-        best_ind = hof[0]
         # print("Best individual is:", best_ind, "Fitness:", best_ind.fitness.values)
 
-        return best_ind, logbook
+        return hof[0], logbook
             
     
         
