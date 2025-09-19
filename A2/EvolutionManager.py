@@ -8,7 +8,7 @@ mp.set_start_method("spawn", force=True)  # important on macOS
 import numpy as np
 from deap import base, creator, tools, algorithms
 
-from fitness_functions import get_best_closeness_to_xyz, get_best_distance_from_start, get_target_fitness, calc_linearity
+from fitness_functions import get_best_closeness_to_xyz, get_best_distance_from_start, get_target_fitness
 from Controller import NNController
 import run
 
