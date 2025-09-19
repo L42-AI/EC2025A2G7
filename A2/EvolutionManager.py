@@ -60,21 +60,30 @@ class EvolutionManager:
 
         self.toolbox.register("evaluate", evaluate_individual, input_size=input_size, hidden_size=hidden_size, output_size=output_size)
 
+
+    # utility function for naming files
     @staticmethod
-    #save generation-wise statistics from DEAP logbook to a .npz file     
-    def save_logbook(logbook, tag:str, run_id:int, out_dir="logbook_results"):
+    def unique_stem(tag: str, rund_id: int) -> str:
+        ts = t.strftime("%Y%m%d-%H%M%S")
+        return f"{tag}_run{rund_id:02d}_{ts}"
+
+    @staticmethod
+    # save generation-wise statistics from DEAP logbook to a .npz file
+    def save_logbook(logbook, tag: str, run_id: int, out_dir="logbook_results"):
+
         gen = np.array(logbook.select("gen"))
         avg = np.array(logbook.select("avg"))
         std = np.array(logbook.select("std"))
         min = np.array(logbook.select("min"))
         max = np.array(logbook.select("max"))
 
-        out = Path(out_dir) / f"{tag}_run{run_id:02d}.npz"
-        out.parent.mkdir(parents=True, exist_ok=True)
+        out_dir = Path(out_dir) / f"{tag}_run{run_id:02d}.npz"
+        out_dir.parent.mkdir(parents=True, exist_ok=True)
+        stem = EvolutionManager.unique_stem(tag, run_id)
+        npz_path = out_dir / f"{stem}.npz"
 
-        np.savez(out, gen=gen, avg=avg, std=std, min=min, max=max)
+        np.savez(npz_path, gen=gen, avg=avg, std=std, min=min, max=max)
         print("saved logbook in {out}")
-        return None   
     
     def run_evolution(self, population_size=200, generations=20, cx_prob=0.8, mut_prob=0.3, multi: bool=True):
         print("Starting evolution with population size:", population_size)
