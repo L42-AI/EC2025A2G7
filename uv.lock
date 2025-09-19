@@ -351,6 +351,7 @@ dependencies = [
     { name = "sphinx-design" },
     { name = "sqlalchemy" },
     { name = "sqlmodel" },
+    { name = "torch" },
     { name = "tqdm" },
 ]
 
@@ -422,6 +423,7 @@ requires-dist = [
     { name = "sphinx-design", specifier = ">=0.6.1" },
     { name = "sqlalchemy", specifier = ">=2.0.43" },
     { name = "sqlmodel", specifier = ">=0.0.24" },
+    { name = "torch", specifier = ">=2.8.0" },
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
 

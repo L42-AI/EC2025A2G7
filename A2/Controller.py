@@ -2,8 +2,9 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import mujoco
+import torch
+import torch.nn as nn
 
-from utils import sigmoid
 
 class Controller(ABC):
     def __init__(self):
@@ -48,23 +49,74 @@ class RandomController(Controller):
             size = output_shape
         )
 
-class NNController(Controller):
+class NNController(Controller, nn.Module):
     def __init__(self, input_size: int, hidden_size: int, output_size: int, weights: np.ndarray = None):
         super().__init__()
-        if weights is not None:
-            self.W1 = weights[:input_size * hidden_size].reshape(input_size, hidden_size)
-            self.W2 = weights[input_size * hidden_size:input_size * hidden_size + (hidden_size * hidden_size)].reshape(hidden_size, hidden_size)
-            self.W3 = weights[input_size * hidden_size + (hidden_size * hidden_size):input_size * hidden_size + 2 * (hidden_size * hidden_size)].reshape(hidden_size, hidden_size)
-            self.W4 = weights[input_size * hidden_size + 2 * (hidden_size * hidden_size):].reshape(hidden_size, output_size)
-        else:
-            self.W1 = np.random.randn(input_size, hidden_size) * 0.2
-            self.W2 = np.random.randn(hidden_size, hidden_size) * 0.2
-            self.W3 = np.random.randn(hidden_size, hidden_size) * 0.2
-            self.W4 = np.random.randn(hidden_size, output_size) * 0.2
-
+        nn.Module.__init__(self)
+        self.net = nn.Sequential(
+            nn.Linear(input_size, hidden_size),
+            nn.Tanh(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.Tanh(),
+            nn.Linear(hidden_size, output_size),
+            nn.Tanh()
+        )
+        
+        # Load flattened weights if provided
+        pointer = 0
+        for param in self.parameters():
+            shape = param.data.shape
+            size = np.prod(shape)
+            values = weights[pointer:pointer + size].reshape(shape)
+            param.data = torch.tensor(values, dtype=torch.float32)
+            pointer += size
+        
     def get_moves(self, inputs: np.ndarray, output_shape: int) -> np.ndarray:
-        layer1 = np.tanh(np.dot(inputs, self.W1))
-        layer2 = np.tanh(np.dot(layer1, self.W2))
-        layer3 = np.tanh(np.dot(layer2, self.W3))
-        outputs = np.tanh(np.dot(layer3, self.W4))
-        return outputs * (np.pi / 2) # Scale outputs to [-pi/2, pi/2]
+        x = torch.tensor(inputs, dtype=torch.float32)
+        # We are not using gradients here, so no need to track them
+        with torch.no_grad():
+            out = self.net(x)
+        return out.numpy() * (np.pi / 2) # Scale outputs to [-pi/2, pi/2]
+
+##### OLD NN CONTROLLER #######
+
+# class NNController(Controller):
+#     def __init__(self, input_size: int, hidden_size: int, output_size: int, weights: np.ndarray = None):
+#         super().__init__()
+#         if weights is not None:
+#             self.W1 = weights[:input_size * hidden_size].reshape(input_size, hidden_size)
+#             self.W2 = weights[input_size * hidden_size:input_size * hidden_size + (hidden_size * hidden_size)].reshape(hidden_size, hidden_size)
+#             self.W3 = weights[input_size * hidden_size + (hidden_size * hidden_size):].reshape(hidden_size, output_size)
+#         else:
+#             self.W1 = np.random.randn(input_size, hidden_size) * 0.2
+#             self.W2 = np.random.randn(hidden_size, hidden_size) * 0.2
+#             self.W3 = np.random.randn(hidden_size, output_size) * 0.2
+
+#     def get_moves(self, inputs: np.ndarray, output_shape: int) -> np.ndarray:
+#         layer1 = np.tanh(np.dot(inputs, self.W1))
+#         layer2 = np.tanh(np.dot(layer1, self.W2))
+#         outputs = np.tanh(np.dot(layer2, self.W3))
+#         return outputs * (np.pi / 2) # Scale outputs to [-pi/2, pi/2]
+    
+#### Controller with 2 layers
+
+# class NNController(Controller):
+#     def __init__(self, input_size: int, hidden_size: int, output_size: int, weights: np.ndarray = None):
+#         super().__init__()
+#         if weights is not None:
+#             self.W1 = weights[:input_size * hidden_size].reshape(input_size, hidden_size)
+#             self.W2 = weights[input_size * hidden_size:input_size * hidden_size + (hidden_size * hidden_size)].reshape(hidden_size, hidden_size)
+#             self.W3 = weights[input_size * hidden_size + (hidden_size * hidden_size):input_size * hidden_size + 2 * (hidden_size * hidden_size)].reshape(hidden_size, hidden_size)
+#             self.W4 = weights[input_size * hidden_size + 2 * (hidden_size * hidden_size):].reshape(hidden_size, output_size)
+#         else:
+#             self.W1 = np.random.randn(input_size, hidden_size) * 0.2
+#             self.W2 = np.random.randn(hidden_size, hidden_size) * 0.2
+#             self.W3 = np.random.randn(hidden_size, hidden_size) * 0.2
+#             self.W4 = np.random.randn(hidden_size, output_size) * 0.2
+
+#     def get_moves(self, inputs: np.ndarray, output_shape: int) -> np.ndarray:
+#         layer1 = np.tanh(np.dot(inputs, self.W1))
+#         layer2 = np.tanh(np.dot(layer1, self.W2))
+#         layer3 = np.tanh(np.dot(layer2, self.W3))
+#         outputs = np.tanh(np.dot(layer3, self.W4))
+#         return outputs * (np.pi / 2) # Scale outputs to [-pi/2, pi/2]

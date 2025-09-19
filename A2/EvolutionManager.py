@@ -13,7 +13,7 @@ from Controller import NNController
 from experiment_runner import ExperimentRunner
 
 # fitness_func = get_best_distance_from_start
-fitness_func = partial(get_target_fitness, target=np.array([0.0, 10.0, 0.0]))
+fitness_func = partial(get_target_fitness, target=np.array([10.0, 0.0, 0.0]))
 
 def evaluate_individual(individual, input_size: int, hidden_size: int, output_size: int) -> tuple:
     experiment = ExperimentRunner()
@@ -26,7 +26,7 @@ def evaluate_individual(individual, input_size: int, hidden_size: int, output_si
 
     result = experiment._run_experiment(
         controller=controller,
-        simulation_steps=6000,
+        simulation_steps=100_000,
     )
     fitness = fitness_func(result)
     return (fitness,) # Return a tuple of fitness
@@ -41,9 +41,9 @@ class EvolutionManager:
         self.output_size = output_size
 
         self.num_weights =  (
-            (input_size * hidden_size)
-            + 2 * (hidden_size * hidden_size)
-            + (hidden_size * output_size)
+            (input_size * hidden_size + hidden_size)
+            + (hidden_size * hidden_size + hidden_size)
+            + (hidden_size * output_size + output_size)
         )
 
         # Setup DEAP framework
@@ -55,8 +55,8 @@ class EvolutionManager:
         self.toolbox.register("attr_float", random.uniform, -1.0, 1.0) # Weights between -1 and 1
         self.toolbox.register("individual", tools.initRepeat, creator.Individual, self.toolbox.attr_float, n=self.num_weights)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
-        self.toolbox.register("mate", tools.cxTwoPoint) # Two-point crossover, keeping individual length constant
-        self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.3, indpb=0.3) # Gaussian mutation
+        self.toolbox.register("mate", tools.cxUniform, indpb=0.5) # Uniform crossover, keeping individual length constant
+        self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.3, indpb=0.2) # Gaussian mutation
         self.toolbox.register("select", tools.selTournament, tournsize=5) # Tournament selection, picking best of 5
 
         self.toolbox.register("evaluate", evaluate_individual, input_size=input_size, hidden_size=hidden_size, output_size=output_size)
@@ -94,6 +94,7 @@ class EvolutionManager:
         start = t.time()
         if multi:
             # --- Use multiprocessing only inside a context ---
+            print("Using multiprocessing, with", mp.cpu_count(), "cores")
             ctx = mp.get_context("spawn")
             with ctx.Pool(mp.cpu_count()) as pool:
                 self.toolbox.register("map", pool.map)

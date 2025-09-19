@@ -114,4 +114,4 @@ def get_target_fitness(history: list, target: Optional[np.ndarray] = None) -> fl
         for i in range(len(history)-1)
     )
 
-    return target_distance - 0.2 * total_disp
+    return target_distance - 0.4 * total_disp
