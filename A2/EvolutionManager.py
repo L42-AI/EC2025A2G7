@@ -13,7 +13,7 @@ from Controller import NNController
 import run
 
 # fitness_func = get_best_distance_from_start
-fitness_func = partial(get_target_fitness, target=np.array([10.0, 0.0, 0.0]))
+fitness_func = partial(get_best_closeness_to_xyz, target=np.array([10.0, 0.0, 0.0]))
 
 def evaluate_individual(individual, input_size: int, hidden_size: int, output_size: int) -> tuple:
     controller = NNController(
@@ -25,7 +25,7 @@ def evaluate_individual(individual, input_size: int, hidden_size: int, output_si
 
     history = run.single(
         controller=controller,
-        simulation_steps=100_000,
+        simulation_steps=10_000,
     )
     fitness = fitness_func(history)
     return (fitness,) # Return a tuple of fitness
@@ -46,7 +46,7 @@ class EvolutionManager:
         )
 
         # Setup DEAP framework
-        creator.create("FitnessMin", base.Fitness, weights=(-1.0,)) # Maximize fitness, weights represents minimize (-1.0)/maximize(1.0)
+        creator.create("FitnessMin", base.Fitness, weights=(1.0,)) # Maximize fitness, weights represents minimize (-1.0)/maximize(1.0)
         creator.create("Individual", list, fitness=creator.FitnessMin) # list is used to store weights in
 
         # Initialize toolbox
