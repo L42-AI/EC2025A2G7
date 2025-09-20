@@ -3,6 +3,7 @@ import multiprocessing as mp
 import random
 import time as t
 from pathlib import Path
+import visualize
 
 mp.set_start_method("spawn", force=True)  # important on macOS
 
