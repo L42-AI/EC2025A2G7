@@ -3,24 +3,32 @@ import multiprocessing as mp
 import random
 import time as t
 from pathlib import Path
+
 mp.set_start_method("spawn", force=True)  # important on macOS
 
 import numpy as np
 from deap import base, creator, tools, algorithms
 
-from fitness_functions import get_best_closeness_to_xyz, get_best_distance_from_start, get_target_fitness
+from fitness_functions import (
+    get_best_closeness_to_xyz,
+    get_best_distance_from_start,
+    get_target_fitness,
+)
 from Controller import NNController
 import run
 
 # fitness_func = get_best_distance_from_start
 fitness_func = partial(get_best_closeness_to_xyz, target=np.array([10.0, 0.0, 0.0]))
 
-def evaluate_individual(individual, input_size: int, hidden_size: int, output_size: int) -> tuple:
+
+def evaluate_individual(
+    individual, input_size: int, hidden_size: int, output_size: int
+) -> tuple:
     controller = NNController(
-        input_size=input_size, 
-        hidden_size=hidden_size, 
-        output_size=output_size, 
-        weights=np.array(individual)
+        input_size=input_size,
+        hidden_size=hidden_size,
+        output_size=output_size,
+        weights=np.array(individual),
     )
 
     history = run.single(
@@ -28,38 +36,64 @@ def evaluate_individual(individual, input_size: int, hidden_size: int, output_si
         simulation_steps=10_000,
     )
     fitness = fitness_func(history)
-    return (fitness,) # Return a tuple of fitness
-    
+    return (fitness,)  # Return a tuple of fitness
+
+
 class EvolutionManager:
 
-
-
-    def __init__(self, input_size: int = 15, hidden_size: int = 64, output_size: int = 8):
+    def __init__(
+        self, input_size: int = 15, hidden_size: int = 64, output_size: int = 8
+    ):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
 
-        self.num_weights =  (
+        self.num_weights = (
             (input_size * hidden_size + hidden_size)
             + (hidden_size * hidden_size + hidden_size)
             + (hidden_size * output_size + output_size)
         )
 
         # Setup DEAP framework
-        creator.create("FitnessMin", base.Fitness, weights=(1.0,)) # Maximize fitness, weights represents minimize (-1.0)/maximize(1.0)
-        creator.create("Individual", list, fitness=creator.FitnessMin) # list is used to store weights in
+        creator.create(
+            "FitnessMin", base.Fitness, weights=(-1.0,)
+        )  # Maximize fitness, weights represents minimize (-1.0)/maximize(1.0)
+        creator.create(
+            "Individual", list, fitness=creator.FitnessMin
+        )  # list is used to store weights in
 
         # Initialize toolbox
         self.toolbox = base.Toolbox()
-        self.toolbox.register("attr_float", random.uniform, -1.0, 1.0) # Weights between -1 and 1
-        self.toolbox.register("individual", tools.initRepeat, creator.Individual, self.toolbox.attr_float, n=self.num_weights)
-        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
-        self.toolbox.register("mate", tools.cxUniform, indpb=0.5) # Uniform crossover, keeping individual length constant
-        self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.3, indpb=0.2) # Gaussian mutation
-        self.toolbox.register("select", tools.selTournament, tournsize=5) # Tournament selection, picking best of 5
+        self.toolbox.register(
+            "attr_float", random.uniform, -1.0, 1.0
+        )  # Weights between -1 and 1
+        self.toolbox.register(
+            "individual",
+            tools.initRepeat,
+            creator.Individual,
+            self.toolbox.attr_float,
+            n=self.num_weights,
+        )
+        self.toolbox.register(
+            "population", tools.initRepeat, list, self.toolbox.individual
+        )
+        self.toolbox.register(
+            "mate", tools.cxUniform, indpb=0.5
+        )  # Uniform crossover, keeping individual length constant
+        self.toolbox.register(
+            "mutate", tools.mutGaussian, mu=0, sigma=0.3, indpb=0.2
+        )  # Gaussian mutation
+        self.toolbox.register(
+            "select", tools.selTournament, tournsize=5
+        )  # Tournament selection, picking best of 5
 
-        self.toolbox.register("evaluate", evaluate_individual, input_size=input_size, hidden_size=hidden_size, output_size=output_size)
-
+        self.toolbox.register(
+            "evaluate",
+            evaluate_individual,
+            input_size=input_size,
+            hidden_size=hidden_size,
+            output_size=output_size,
+        )
 
     # utility function for naming files
     @staticmethod
@@ -67,25 +101,64 @@ class EvolutionManager:
         ts = t.strftime("%Y%m%d-%H%M%S")
         return f"{tag}_run{rund_id:02d}_{ts}"
 
+    # convert scalar or list of probs into n_gen length numpy array of prob
+    @staticmethod
+    def to_series(prob: float | list | np.ndarray, n_gen: int):
+        if isinstance(prob, (list, tuple, np.ndarray)):
+            arr = np.array(prob, dtype=float)
+            if len(arr) != n_gen:
+                raise ValueError(
+                    f"Length mismatch: got {len(arr)} rates, but {n_gen} generations."
+                )
+            return arr
+        else:
+            return np.full(n_gen, float(prob), dtype=float)
+
     @staticmethod
     # save generation-wise statistics from DEAP logbook to a .npz file
-    def save_logbook(logbook, tag: str, run_id: int, out_dir="logbook_results"):
+    def save_logbook(
+        logbook,
+        tag: str,
+        run_id: int,
+        out_dir="logbook_results",
+        mutpb: float | list | np.ndarray = None,
+        cxpb: float | list | np.ndarray = None,
+    ):
 
         gen = np.array(logbook.select("gen"))
         avg = np.array(logbook.select("avg"))
         std = np.array(logbook.select("std"))
-        min = np.array(logbook.select("min"))
-        max = np.array(logbook.select("max"))
+        minv = np.array(logbook.select("min"))
+        maxv = np.array(logbook.select("max"))
 
-        out_dir = Path(out_dir) / f"{tag}_run{run_id:02d}.npz"
-        out_dir.parent.mkdir(parents=True, exist_ok=True)
+        # check output directories
+        out_dir = Path(out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        # build unique filename
         stem = EvolutionManager.unique_stem(tag, run_id)
         npz_path = out_dir / f"{stem}.npz"
 
-        np.savez(npz_path, gen=gen, avg=avg, std=std, min=min, max=max)
-        print("saved logbook in {out}")
-    
-    def run_evolution(self, population_size=200, generations=20, cx_prob=0.8, mut_prob=0.3, multi: bool=True):
+        n = len(gen)
+        extra = {}
+        if mutpb is not None:
+            extra["mutpb"] = EvolutionManager.to_series(mutpb, n)
+        if cxpb is not None:
+            extra["cxpb"] = EvolutionManager.to_series(cxpb, n)
+
+        np.savez_compressed(
+            npz_path, gen=gen, avg=avg, std=std, min=minv, max=maxv, **extra
+        )
+        print(f"saved logbook in {npz_path}")
+
+    def run_evolution(
+        self,
+        population_size=200,
+        generations=20,
+        cx_prob=0.8,
+        mut_prob=0.3,
+        multi: bool = True,
+    ):
         print("Starting evolution with population size:", population_size)
         pop = self.toolbox.population(n=population_size)
 
@@ -108,7 +181,8 @@ class EvolutionManager:
                 self.toolbox.register("map", pool.map)
 
                 pop, logbook = algorithms.eaMuPlusLambda(
-                    pop, self.toolbox,
+                    pop,
+                    self.toolbox,
                     mu=population_size,
                     lambda_=population_size,
                     cxpb=cx_prob,
@@ -116,11 +190,12 @@ class EvolutionManager:
                     ngen=generations,
                     stats=stats,
                     halloffame=hof,
-                    verbose=True
+                    verbose=True,
                 )
         else:
             pop, logbook = algorithms.eaMuPlusLambda(
-                pop, self.toolbox,
+                pop,
+                self.toolbox,
                 mu=population_size,
                 lambda_=population_size,
                 cxpb=cx_prob,
@@ -128,7 +203,7 @@ class EvolutionManager:
                 ngen=generations,
                 stats=stats,
                 halloffame=hof,
-                verbose=True
+                verbose=True,
             )
 
         end = t.time()
@@ -147,14 +222,13 @@ class EvolutionManager:
 
         # print("Best individual is:", best_ind, "Fitness:", best_ind.fitness.values)
 
-        self.save_logbook(logbook, tag="EA1", run_id=1, out_dir="A2/results")
-
+        self.save_logbook(
+            logbook,
+            tag="EA1",
+            run_id=1,
+            out_dir="A2/results",
+            mutpb=mut_prob,
+            cxpb=cx_prob,
+        )
 
         return hof[0], logbook
-    
-    
-   
-    
-        
-        
-        
