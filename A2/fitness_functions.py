@@ -100,6 +100,14 @@ def get_best_closeness_to_xyz(history: list, target: Optional[np.ndarray]) -> fl
         
     return min_distance
 
+def get_highest_negative_y(history: np.ndarray) -> tuple[float, float]:
+    """Calculate and print the lowest Y position reached."""
+    best_idx = history[:, 1].argmin()
+    best_value = -history[best_idx, 1]
+    if best_idx == 0:
+        return best_value, 0.0
+    return best_value, best_value / best_idx
+
 def get_target_fitness(history: list, target: Optional[np.ndarray] = None) -> float:
     """Sum of all step-to-step displacements (path length)."""
     if target is None:

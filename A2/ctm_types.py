@@ -1,6 +1,7 @@
 import numpy as np
 from ariel.simulation.environments import *
-from Controller import RandomController, NNController
+from Controller import RandomController, NNController, TorchController
+from brain import NNBrain, TorchBrain
 
 WorldType = (
     SimpleFlatWorld |
@@ -22,11 +23,14 @@ WORLD_MAP: dict[str, type[WorldType]] = {
     "PyramidWorld": PyramidWorld,
 }
 
-ControllerType = RandomController | NNController
+ControllerType = RandomController | NNController | TorchController
 
 CONTROLLER_MAP: dict[str, type[ControllerType]] = {
     "RandomController": RandomController,
+    "TorchController": TorchController,
     "NNController": NNController,
 }
 
 History = np.ndarray
+
+BrainType = NNBrain | TorchBrain
