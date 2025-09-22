@@ -23,7 +23,11 @@ if __name__ == "__main__":
     fitnesses = evolution_manager.run_baseline(population)
 
     best_weights, logbook = evolution_manager.run_evolution(
-        population.copy(), generations=generations, cx_prob=0.5, mut_prob=0.5
+        population.copy(),
+        generations=generations,
+        cx_prob=0.5,
+        mut_prob=0.5,
+        exp_name="Fie_experiment_CL_False",
     )
 
     best_weights, logbook = evolution_manager.run_evolution(
@@ -32,4 +36,5 @@ if __name__ == "__main__":
         cx_prob=0.0,
         mut_prob=1.0,
         curricular_learning=True,
+        exp_name="Fie_experiment_CL_True",
     )
