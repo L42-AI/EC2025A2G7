@@ -31,6 +31,15 @@ class NNBrain:
             W[:] = flat_weights[offset:offset + size].reshape(W.shape)
             offset += size
 
+    def get_weight_slice_indices(self) -> dict[str, slice]:
+        indices = {}
+        offset = 0
+        for i, W in enumerate([self.W1, self.W2, self.W3], start=1):
+            size = W.size
+            indices[f"W{i}"] = slice(offset, offset + size)
+            offset += size
+        return indices
+
 class TorchBrain(nn.Module):
     def __init__(self, input_size: int, hidden_size: int, output_size: int, weights: Optional[np.ndarray]=None):
         super().__init__()
@@ -66,3 +75,14 @@ class TorchBrain(nn.Module):
             num_params = p.numel()
             p.data = flat_weights[idx:idx+num_params].view_as(p).clone()
             idx += num_params
+
+    def get_weight_slice_indices(self):
+        """Return a dictionary mapping layer names to their weight slice indices in the flat weight array."""
+        indices = {}
+        offset = 0
+        for name, layer in self.named_children():
+            for param in layer.parameters():
+                size = param.numel()
+                indices[f"{name}_{'weight' if param.dim() > 1 else 'bias'}"] = slice(offset, offset + size)
+                offset += size
+        return indices

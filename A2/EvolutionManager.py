@@ -15,7 +15,6 @@ from fitness_functions import (
 )
 
 import run
-import visualize
 from Controller import NNController
 from ctm_types import ControllerType
 import evolution.crossover as cx
@@ -47,7 +46,8 @@ def evaluate_individual(
 
 class EvolutionManager:
     def __init__(self, input_size: int = 15, hidden_size: int = 64, output_size: int = 8, controller_type: type[ControllerType] = type[NNController], weights: list = None):
-        num_weights =  controller_type(input_size, hidden_size, output_size).brain.get_num_weights()
+        brain = controller_type(input_size, hidden_size, output_size).brain
+        num_weights = brain.get_num_weights()
 
         # Setup DEAP framework
         creator.create(
@@ -63,7 +63,7 @@ class EvolutionManager:
         self.toolbox.register("attr_float", random.uniform, -1.0, 1.0) # Weights between -1 and 1
         self.toolbox.register("individual", tools.initRepeat, creator.Individual, self.toolbox.attr_float, n=num_weights)
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
-        self.toolbox.register("mate", tools.cxUniform, indpb=0.5) # Uniform crossover, keeping individual length constant
+        self.toolbox.register("mate", tools.cxBlend, alpha=0.5)
         self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.3, indpb=0.2) # Gaussian mutation
         self.toolbox.register("select", tools.selTournament, tournsize=5) # Tournament selection, picking best of 5
 
@@ -137,18 +137,19 @@ class EvolutionManager:
         )
         print(f"saved logbook in {npz_path}")
 
+    def build_population(self, population_size: int) -> list:
+        print("Starting evolution with population size:", population_size)
+        return self.toolbox.population(n=population_size)
+
     def run_evolution(
         self,
-        population_size: int = 200,
+        pop: list,
         generations: int = 20,
         cx_prob: float = 0.8,
         mut_prob: float = 0.3,
         curricular_learning: bool = False,
 
     ) -> tuple[np.ndarray, tools.Logbook]:
-
-        print("Starting evolution with population size:", population_size)
-        pop = self.toolbox.population(n=population_size)
 
         if curricular_learning:
             cx_schedule = partial(cx.get_linear_cx_prob_schedule, start_prob=cx_prob, end_prob=1 - cx_prob)
@@ -175,8 +176,8 @@ class EvolutionManager:
             pop, logbook = algorithms.eaMuPlusLambda(
                 pop,
                 self.toolbox,
-                mu=population_size,
-                lambda_=population_size,
+                mu=len(pop),
+                lambda_=len(pop),
                 cxpb=cx_prob,
                 mutpb=mut_prob,
                 ngen=generations,
@@ -190,13 +191,13 @@ class EvolutionManager:
         end = t.time()
         print(f"Time taken: {end - start:.2f} seconds")
 
-        self.save_logbook(
-            logbook,
-            tag="EA1",
-            run_id=1,
-            out_dir="A2/results",
-            mutpb=mut_prob,
-            cxpb=cx_prob,
-        )
+        # self.save_logbook(
+        #     logbook,
+        #     tag="EA1",
+        #     run_id=1,
+        #     out_dir="A2/results",
+        #     mutpb=mut_prob,
+        #     cxpb=cx_prob,
+        # )
 
         return np.array(hof[0]), logbook

@@ -29,7 +29,21 @@ def get_logistic_mut_prob_schedule(ngens, gen, start_prob=0.9, end_prob=0.1, ste
 
 import random
 import numpy as np
-from deap import base, creator, tools
+
+def cxWeights(ind1, ind2, indices, cx_prob):
+    """
+    Crossover that swaps entire blocks of weights defined by `indices`.
+    `indices` is a dict mapping block names to slice objects.
+    """
+    # Pick 1 or more blocks to swap
+    names_to_swap = random.sample(list(indices.keys()), k=random.randint(1, len(indices)))
+    for name in names_to_swap:
+        if random.random() > cx_prob:
+            continue  # Skip based on crossover probability
+        sl = indices[name]
+        ind1[sl], ind2[sl] = ind2[sl].copy(), ind1[sl].copy()  # swap weights
+    return ind1, ind2
+
 
 # Helper to get indices of weight blocks
 def get_submodule_indices(modular_brain):
