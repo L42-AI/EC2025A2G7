@@ -45,9 +45,7 @@ def show_qpos_history(history:list):
 # Load npz
 def load_npz_file(path:str)-> dict:
     data = np.load(path)
-    out = {k: data[k] for k in data.files}
-    print("keys:", out.keys())         # Do you see 'mutpb' and 'cxpb'?
-    print(out.get("mutpb"), out.get("cxpb"))    
+    out = {k: data[k] for k in data.files} 
     return out
 
 
