@@ -102,4 +102,5 @@ def plot_result(path: str):
     plt.tight_layout()
     plt.show()
 
-plot_result("A2/results/EA1_run01_20250920-220956.npz")
+if __name__ == "__main__":
+    plot_result("A2/results/EA1_run01_20250920-220956.npz")
