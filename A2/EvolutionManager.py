@@ -118,19 +118,17 @@ class EvolutionManager:
         npz_path = out_dir / f"{stem}.npz"
         npz_path.parent.mkdir(parents=True, exist_ok=True)
 
-        np.savez(npz_path, gen=gen, avg=avg, std=std, min=min, max=max)
-        print(f"saved logbook in {npz_path}")
-
         n = len(gen)
-        extra = {}
+        if n == 0:
+            raise ValueError("Logbook is empty; nothing to save.")
+        pb_info = {}
         if mutpb is not None:
-            extra["mutpb"] = EvolutionManager.to_series(mutpb, n)
+            pb_info["mutpb"] = EvolutionManager.to_series(mutpb, n)
         if cxpb is not None:
-            extra["cxpb"] = EvolutionManager.to_series(cxpb, n)
+            pb_info["cxpb"] = EvolutionManager.to_series(cxpb, n)
 
         np.savez_compressed(
-            npz_path, gen=gen, avg=avg, std=std, min=minv, max=maxv, **extra
-        )
+            npz_path, gen=gen, avg=avg, std=std, min=minv, max=maxv, **pb_info)
         print(f"saved logbook in {npz_path}")
 
     def build_population(self, population_size: int) -> list:
