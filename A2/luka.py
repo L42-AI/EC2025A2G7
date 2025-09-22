@@ -19,8 +19,7 @@ if __name__ == "__main__":
         input_size,
         hidden_size,
         output_size,
-        controller_type=controller_type,
-        exp_name=None
+        controller_type=controller_type
     )
     population = evolution_manager.build_population(population_size)
 
