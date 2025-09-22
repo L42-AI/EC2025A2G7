@@ -99,10 +99,10 @@ class EvolutionManager:
     @staticmethod
     # save generation-wise statistics from DEAP logbook to a .npz file
     def save_logbook(
-        logbook,
+        logbook: tools.Logbook,
         tag: str,
         run_id: int,
-        out_dir="logbook_results",
+        out_dir=Path(__file__).parent / "results",
         mutpb: float | list | np.ndarray = None,
         cxpb: float | list | np.ndarray = None,
     ):
@@ -112,10 +112,6 @@ class EvolutionManager:
         std = np.array(logbook.select("std"))
         minv = np.array(logbook.select("min"))
         maxv = np.array(logbook.select("max"))
-
-        # check output directories
-        out_dir = Path(out_dir)
-        out_dir.mkdir(parents=True, exist_ok=True)
 
         # build unique filename
         stem = EvolutionManager.unique_stem(tag, run_id)
@@ -191,13 +187,13 @@ class EvolutionManager:
         end = t.time()
         print(f"Time taken: {end - start:.2f} seconds")
 
-        # self.save_logbook(
-        #     logbook,
-        #     tag="EA1",
-        #     run_id=1,
-        #     out_dir="A2/results",
-        #     mutpb=mut_prob,
-        #     cxpb=cx_prob,
-        # )
+        self.save_logbook(
+            logbook,
+            tag="EA1",
+            run_id=1,
+            out_dir=Path(__file__).parent / "results",
+            mutpb=mut_prob,
+            cxpb=cx_prob,
+        )
 
         return np.array(hof[0]), logbook
