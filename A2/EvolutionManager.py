@@ -207,5 +207,11 @@ class EvolutionManager:
         ctx = mp.get_context("spawn")
         with ctx.Pool(mp.cpu_count()) as pool:
             self.toolbox.register("map", pool.map)
-            fitnesses = [result[0] for result in pool.map(self.eval_func, population)]
+            fitnesses = [float(result[0]) for result in pool.map(self.eval_func, population)]
+
+        self.export_baseline_fitnesses(fitnesses)
         return fitnesses
+    
+    def export_baseline_fitnesses(self, fitnesses: list[float], out_dir=Path(__file__).parent / "results"):
+        out_dir.mkdir(parents=True, exist_ok=True)
+        np.save(out_dir / "baseline_fitnesses.npy", np.array(fitnesses))
