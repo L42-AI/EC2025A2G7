@@ -198,20 +198,27 @@ class EvolutionManager:
             cxpb=cx_prob,
         )
 
-        return np.array(hof[0]), logbook
+        best_individual = np.array(hof[0])
+
+        np.save(Path(__file__).parent / "results" / f"best_individual_curricular_learning_{curricular_learning}.npy", best_individual)
+
+        return best_individual, logbook
 
     def run_baseline(
         self,
         population: list,
     ) -> list[float]:
+        start = t.time()
         ctx = mp.get_context("spawn")
         with ctx.Pool(mp.cpu_count()) as pool:
-            self.toolbox.register("map", pool.map)
             fitnesses = [float(result[0]) for result in pool.map(self.eval_func, population)]
 
         self.export_baseline_fitnesses(fitnesses)
+        end = t.time()
+        print(f"Baseline evaluation time: {end - start:.2f} seconds")
         return fitnesses
     
     def export_baseline_fitnesses(self, fitnesses: list[float], out_dir=Path(__file__).parent / "results"):
         out_dir.mkdir(parents=True, exist_ok=True)
         np.save(out_dir / "baseline_fitnesses.npy", np.array(fitnesses))
+        print(f"Saved baseline fitnesses to {out_dir / 'baseline_fitnesses.npy'}")

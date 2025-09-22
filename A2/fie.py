@@ -7,11 +7,11 @@ r.seed(24)
 np.random.seed(24)
 
 if __name__ == "__main__":
-    input_size = 43  # 15 qpos + 14 qvel + 14 qacc
+    input_size = 29  # 15 qpos + 14 qvel
     hidden_size = 64
     output_size = 8  # 8 joints
     population_size = 200
-    generations = 10
+    generations = 100
 
     controller_type = NNController
 
