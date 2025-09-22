@@ -58,8 +58,8 @@ def build_pandas_dataframe( dict ):
         "Std": dict["std"],
         "Min": dict["min"],
         "Max": dict["max"],
-        "Mutpb": dict.get("mutpb", np.full_like(dict["gen"], np.nan, dtype=float)),
-        "Cxpb": dict.get("cxpb", np.full_like(dict["gen"], np.nan, dtype=float))
+        "Mutpb": dict["mutpb"],
+        "Cxpb": dict["cxpb"]
     })
     return df
 
@@ -104,8 +104,6 @@ def plot_result(path: str):
     plt.show()
 
 if __name__ == "__main__":
-    path = Path(__file__).parent / "results" / "EA1_run01_20250922-144309.npz"
+    path = Path(__file__).parent / "results" / "EA1_run01_20250922-201731.npz"
     plot_result(path)
-    path = Path(__file__).parent / "results" / "EA1_run01_20250922-144937.npz"
-    plot_result(path)
-
+   

@@ -118,7 +118,7 @@ def eaMuPlusLambda(
     variation.
     """
     logbook = tools.Logbook()
-    logbook.header = ['gen', 'nevals', 'gen_time'] + (stats.fields if stats else [])
+    logbook.header = ['gen', 'nevals', 'gen_time', 'mutpb', 'cxpb'] + (stats.fields if stats else [])
     start_time = time.time()
 
     # Evaluate the individuals with an invalid fitness
@@ -132,7 +132,7 @@ def eaMuPlusLambda(
 
     gen_time = time.time() - start_time
     record = stats.compile(population) if stats is not None else {}
-    logbook.record(gen=0, nevals=len(invalid_ind), gen_time=gen_time, **record)
+    logbook.record(gen=0, nevals=len(invalid_ind), gen_time=gen_time,mutpb=mutpb, cxpb=cxpb, **record)
     if verbose:
         print(logbook.stream)
 
@@ -160,7 +160,7 @@ def eaMuPlusLambda(
         # Update the statistics with the new population
         gen_time = time.time() - start_time
         record = stats.compile(population) if stats is not None else {}
-        logbook.record(gen=gen, nevals=len(invalid_ind), gen_time=gen_time, **record)
+        logbook.record(gen=gen, nevals=len(invalid_ind), gen_time=gen_time, mutpb=mutpb, cxpb=cxpb, **record)
         if verbose:
             print(logbook.stream)
 

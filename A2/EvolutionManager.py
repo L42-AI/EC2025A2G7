@@ -45,9 +45,10 @@ def evaluate_individual(
     return fitness, # Return a tuple of fitness and speed
 
 class EvolutionManager:
-    def __init__(self, input_size: int = 15, hidden_size: int = 64, output_size: int = 8, controller_type: type[ControllerType] = type[NNController], weights: list = None):
+    def __init__(self, input_size: int = 15, hidden_size: int = 64, output_size: int = 8, controller_type: type[ControllerType] = type[NNController], weights: list = None, exp_name:str = None):
         brain = controller_type(input_size, hidden_size, output_size).brain
         num_weights = brain.get_num_weights()
+        self.exp_name = exp_name
 
         # Setup DEAP framework
         creator.create(
@@ -87,19 +88,6 @@ class EvolutionManager:
         ts = t.strftime("%Y%m%d-%H%M%S")
         return f"{tag}_run{rund_id:02d}_{ts}"
 
-    # convert scalar or list of probs into n_gen length numpy array of prob
-    @staticmethod
-    def to_series(prob: float | list | np.ndarray, n_gen: int):
-        if isinstance(prob, (list, tuple, np.ndarray)):
-            arr = np.array(prob, dtype=float)
-            if len(arr) != n_gen:
-                raise ValueError(
-                    f"Length mismatch: got {len(arr)} rates, but {n_gen} generations."
-                )
-            return arr
-        else:
-            return np.full(n_gen, float(prob), dtype=float)
-
     @staticmethod
     # save generation-wise statistics from DEAP logbook to a .npz file
     def save_logbook(
@@ -107,32 +95,23 @@ class EvolutionManager:
         tag: str,
         run_id: int,
         out_dir=Path(__file__).parent / "results",
-        mutpb: float | list | np.ndarray = None,
-        cxpb: float | list | np.ndarray = None,
-    ):
+        exp_name=None
 
+    ):
         gen = np.array(logbook.select("gen"))
         avg = np.array(logbook.select("avg"))
         std = np.array(logbook.select("std"))
         minv = np.array(logbook.select("min"))
         maxv = np.array(logbook.select("max"))
-
+        mutpb= np.array(logbook.select("mutpb"))
+        cxpb = np.array(logbook.select("cxpb"))
         # build unique filename
-        stem = EvolutionManager.unique_stem(tag, run_id)
-        npz_path = out_dir / f"{stem}.npz"
+        filename = EvolutionManager.unique_stem(tag, run_id) if exp_name is None else exp_name
+        npz_path = out_dir / f"{filename}.npz"
         npz_path.parent.mkdir(parents=True, exist_ok=True)
 
-        n = len(gen)
-        if n == 0:
-            raise ValueError("Logbook is empty; nothing to save.")
-        pb_info = {}
-        if mutpb is not None:
-            pb_info["mutpb"] = EvolutionManager.to_series(mutpb, n)
-        if cxpb is not None:
-            pb_info["cxpb"] = EvolutionManager.to_series(cxpb, n)
-
         np.savez_compressed(
-            npz_path, gen=gen, avg=avg, std=std, min=minv, max=maxv, **pb_info)
+            npz_path, gen=gen, avg=avg, std=std, min=minv, max=maxv, mutpb=mutpb, cxpb=cxpb)
         print(f"saved logbook in {npz_path}")
 
     def build_population(self, population_size: int) -> list:
@@ -194,8 +173,7 @@ class EvolutionManager:
             tag="EA1",
             run_id=1,
             out_dir=Path(__file__).parent / "results",
-            mutpb=mut_prob,
-            cxpb=cx_prob,
+            exp_name=self.exp_name
         )
 
         return np.array(hof[0]), logbook
