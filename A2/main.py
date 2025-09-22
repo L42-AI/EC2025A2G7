@@ -6,11 +6,11 @@ import time as t
 import run
 
 if __name__ == "__main__":
-    input_size = 43  # 15 qpos + 14 qvel + 14 qacc
+    input_size = 29  # 15 qpos + 14 qvel
     hidden_size = 64
     output_size = 8  # 8 joints
-    population_size = 10
-    generations = 10
+    population_size = 300
+    generations = 100
 
     controller_type = NNController
 
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         exp_name=None    )
     population = evolution_manager.build_population(population_size)
 
-    fitnesses = evolution_manager.run_baseline(population)
+    # fitnesses = evolution_manager.run_baseline(population)
     
 
     # best_weights, logbook = evolution_manager.run_evolution(
