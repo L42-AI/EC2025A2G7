@@ -6,11 +6,11 @@ import time as t
 import run
 
 if __name__ == "__main__":
-    input_size = 15  # 15 qpos 
-    hidden_size = 32
+    input_size = 29  # 15 qpos + 14 qvel
+    hidden_size = 64
     output_size = 8  # 8 joints
-    population_size = 500
-    generations = 50
+    population_size = 10
+    generations = 10
 
     controller_type = NNController
 
@@ -21,6 +21,9 @@ if __name__ == "__main__":
         controller_type=controller_type
     )
     population = evolution_manager.build_population(population_size)
+
+    fitnesses = evolution_manager.run_baseline(population)
+    
 
     # best_weights, logbook = evolution_manager.run_evolution(
     #     population_size=population_size,
@@ -35,7 +38,7 @@ if __name__ == "__main__":
     #     mut_prob=0.0
     # )
 
-    # run.single(controller_type(input_size, hidden_size, output_size, weights=None), record_video=True)
+    run.single(controller_type(input_size, hidden_size, output_size, weights=None), record_video=True)
 
     best_weights, logbook = evolution_manager.run_evolution(
         population.copy(),
@@ -44,7 +47,7 @@ if __name__ == "__main__":
         mut_prob=0.5
     )
 
-    # run.single(controller_type(input_size, hidden_size, output_size, weights=best_weights), record_video=True)
+    run.single(controller_type(input_size, hidden_size, output_size, weights=best_weights), record_video=True)
 
     best_weights, logbook = evolution_manager.run_evolution(
         population.copy(),
@@ -54,4 +57,4 @@ if __name__ == "__main__":
         curricular_learning=True
     )
 
-    # run.single(controller_type(input_size, hidden_size, output_size, weights=best_weights), record_video=True)
+    run.single(controller_type(input_size, hidden_size, output_size, weights=best_weights), record_video=True)

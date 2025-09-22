@@ -67,13 +67,17 @@ class EvolutionManager:
         self.toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.3, indpb=0.2) # Gaussian mutation
         self.toolbox.register("select", tools.selTournament, tournsize=5) # Tournament selection, picking best of 5
 
-        self.toolbox.register(
-            "evaluate",
+        self.eval_func = partial(
             evaluate_individual,
             controller_type=controller_type,
             input_size=input_size,
             hidden_size=hidden_size,
             output_size=output_size,
+        )
+
+        self.toolbox.register(
+            "evaluate",
+            self.eval_func,
         )
 
 
@@ -195,3 +199,13 @@ class EvolutionManager:
         )
 
         return np.array(hof[0]), logbook
+
+    def run_baseline(
+        self,
+        population: list,
+    ) -> list[float]:
+        ctx = mp.get_context("spawn")
+        with ctx.Pool(mp.cpu_count()) as pool:
+            self.toolbox.register("map", pool.map)
+            fitnesses = [result[0] for result in pool.map(self.eval_func, population)]
+        return fitnesses

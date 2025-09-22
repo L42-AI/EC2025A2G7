@@ -1,5 +1,6 @@
 import random
 from deap import tools
+import time
 
 def varOr(population, toolbox, lambda_, cxpb, mutpb):
     r"""Part of an evolutionary algorithm applying only the variation part
@@ -117,7 +118,8 @@ def eaMuPlusLambda(
     variation.
     """
     logbook = tools.Logbook()
-    logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
+    logbook.header = ['gen', 'nevals', 'gen_time'] + (stats.fields if stats else [])
+    start_time = time.time()
 
     # Evaluate the individuals with an invalid fitness
     invalid_ind = [ind for ind in population if not ind.fitness.valid]
@@ -128,13 +130,15 @@ def eaMuPlusLambda(
     if halloffame is not None:
         halloffame.update(population)
 
+    gen_time = time.time() - start_time
     record = stats.compile(population) if stats is not None else {}
-    logbook.record(gen=0, nevals=len(invalid_ind), **record)
+    logbook.record(gen=0, nevals=len(invalid_ind), gen_time=gen_time, **record)
     if verbose:
         print(logbook.stream)
 
     # Begin the generational process
     for gen in range(1, ngen + 1):
+        start_time = time.time()
         cxpb = cx_schedule(ngen + 1, gen) if cx_schedule is not None else cxpb
         mutpb = mut_schedule(ngen + 1, gen) if mut_schedule is not None else mutpb
         # Vary the population
@@ -154,8 +158,9 @@ def eaMuPlusLambda(
         population[:] = toolbox.select(population + offspring, mu)
 
         # Update the statistics with the new population
+        gen_time = time.time() - start_time
         record = stats.compile(population) if stats is not None else {}
-        logbook.record(gen=gen, nevals=len(invalid_ind), **record)
+        logbook.record(gen=gen, nevals=len(invalid_ind), gen_time=gen_time, **record)
         if verbose:
             print(logbook.stream)
 

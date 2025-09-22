@@ -14,11 +14,13 @@ class Controller(ABC):
         pass
 
     def move(self, model: mujoco._structs.MjModel, data: mujoco._structs.MjData, to_track) -> None:
-        qpos = data.qpos
+        qpos = data.qpos # 15
+        qvel = data.qvel # 14
         output_shape = model.nu # 8
 
-        
-        moves = self.get_moves(qpos, output_shape)
+        q_input = np.concatenate([qpos, qvel]) # 29
+
+        moves = self.get_moves(q_input, output_shape)
 
         data.ctrl += moves * 0.05
         data.ctrl = np.clip(data.ctrl, -np.pi/2, np.pi/2) 

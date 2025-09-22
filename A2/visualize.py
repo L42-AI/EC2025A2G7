@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+from pathlib import Path
 
 def visualise_furthest_point(furthest_points: list):
     """Visualise the frequency of furthest points reached in multiple simulations as a histogram."""
@@ -103,4 +104,8 @@ def plot_result(path: str):
     plt.show()
 
 if __name__ == "__main__":
-    plot_result("A2/results/EA1_run01_20250920-220956.npz")
+    path = Path(__file__).parent / "results" / "EA1_run01_20250922-144309.npz"
+    plot_result(path)
+    path = Path(__file__).parent / "results" / "EA1_run01_20250922-144937.npz"
+    plot_result(path)
+
