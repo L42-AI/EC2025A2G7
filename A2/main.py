@@ -6,10 +6,10 @@ import time as t
 import run
 
 if __name__ == "__main__":
-    input_size = 29  # 15 qpos + 14 qvel
+    input_size = 43  # 15 qpos + 14 qvel + 14 qacc
     hidden_size = 64
     output_size = 8  # 8 joints
-    population_size = 10
+    population_size = 200
     generations = 10
 
     controller_type = NNController
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     #     mut_prob=0.0
     # )
 
-    run.single(controller_type(input_size, hidden_size, output_size, weights=None), record_video=True)
+    # run.single(controller_type(input_size, hidden_size, output_size, weights=None), record_video=True)
 
     best_weights, logbook = evolution_manager.run_evolution(
         population.copy(),

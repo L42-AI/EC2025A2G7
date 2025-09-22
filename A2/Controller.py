@@ -16,9 +16,10 @@ class Controller(ABC):
     def move(self, model: mujoco._structs.MjModel, data: mujoco._structs.MjData, to_track) -> None:
         qpos = data.qpos # 15
         qvel = data.qvel # 14
+        qacc = data.qacc # 14
         output_shape = model.nu # 8
 
-        q_input = np.concatenate([qpos, qvel]) # 29
+        q_input = np.concatenate([qpos, qvel, qacc]) # 15 + 14 + 14 = 43
 
         moves = self.get_moves(q_input, output_shape)
 
