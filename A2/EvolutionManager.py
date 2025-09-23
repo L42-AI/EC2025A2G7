@@ -40,7 +40,7 @@ def evaluate_individual(
 
     history = run.single(
         controller=controller,
-        simulation_steps=100_000,
+        simulation_steps=15_000,
     )
     fitness, speed = get_highest_negative_y(history)
     return (fitness,)  # Return a tuple of fitness and speed

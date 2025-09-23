@@ -211,14 +211,14 @@ def plot_agg_results(
         color="purple",
         label="Moving average",
     )
-    ax.fill_between(
-        df_plot["Generation"],
-        df_plot["MovingAvg"] - df_plot["MovingStd"],
-        df_plot["MovingAvg"] + df_plot["MovingStd"],
-        alpha=0.2,
-        color="orange",
-        label="Moving ± std",
-    )
+    # ax.fill_between(
+    #     df_plot["Generation"],
+    #     df_plot["MovingAvg"] - df_plot["MovingStd"],
+    #     df_plot["MovingAvg"] + df_plot["MovingStd"],
+    #     alpha=0.2,
+    #     color="orange",
+    #     label="Moving ± std",
+    # )
 
     ax.set_xlabel("Generation")
     ax.set_ylabel("Fitness")
@@ -267,38 +267,37 @@ def plot_3_experiments(
             h, l = ax.get_legend_handles_labels()
             uniq = dict(zip(l, h))
             ax.legend(uniq.values(), uniq.keys(), loc="best")
+            ax.grid(True)   
 
     plt.tight_layout()
     plt.show()
     return fig, axes
 
 
-plot_3_experiments(
-    triplet_left=(
-        "A2/ea_results/13_EA1_run01_20250923-034308.npz",
-        "A2/ea_results/24_experiment_CL_False.npz",
-        "A2/ea_results/42_experiment_CL_False.npz",
-    ),
-    triplet_right=(
-        "A2/ea_results/13_EA1_run01_20250923-092224.npz",
-        "A2/ea_results/24_experiment_CL_True.npz",
-        "A2/ea_results/42_experiment_CL_True.npz",
-    ),
-    titles=("Without CL", "With CL"),
-    baseline_path=(
-        "A2/baseline_results/13_baseline_fitnesses.npy",
-        "A2/baseline_results/24_baseline_fitnesses.npy",
-        "A2/baseline_results/42_baseline_fitnesses.npy",
-    ),
-    window_title="Aggregated fitness",
-)
 
 
-"""
+
 if __name__ == "__main__":
-    path = Path(__file__).parent /  "/Users/fiebergli/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/AI master/P1/Evolutionary Computing/EC2025A2G7/A2/ea_results/24_experiment_CL_False.npz"
-    plot_result_mutcx_pb(path, "24_experiment_CL_False")
-    path = Path(__file__).parent /  "/Users/fiebergli/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/AI master/P1/Evolutionary Computing/EC2025A2G7/A2/ea_results/24_experiment_CL_True.npz"
-    plot_result_mutcx_pb(path, "24_experiment_CL_True")
-
-   """
+    plot_3_experiments(
+        triplet_left=(
+            Path(__file__).parent / "ea_results/13_experiment_CL_False.npz",
+            Path(__file__).parent / "ea_results/24_experiment_CL_False.npz",
+            Path(__file__).parent / "ea_results/42_experiment_CL_False.npz",
+        ),
+        triplet_right=(
+            Path(__file__).parent / "ea_results/13_experiment_CL_True.npz",
+            Path(__file__).parent / "ea_results/24_experiment_CL_True.npz",
+            Path(__file__).parent / "ea_results/42_experiment_CL_True.npz",
+        ),
+        titles=("Without CL", "With CL"),
+        baseline_path=(
+            Path(__file__).parent / "baseline_results/13_baseline_fitnesses.npy",
+            Path(__file__).parent / "baseline_results/24_baseline_fitnesses.npy",
+            Path(__file__).parent / "baseline_results/42_baseline_fitnesses.npy",
+        ),
+        window_title="Aggregated fitness",
+    )
+    # path = Path(__file__).parent / "ea_results/24_experiment_CL_False.npz"
+    # plot_result_mutcx_pb(path, "24_experiment_CL_False")
+    # path = Path(__file__).parent / "ea_results/24_experiment_CL_True.npz"
+    # plot_result_mutcx_pb(path, "24_experiment_CL_True")
