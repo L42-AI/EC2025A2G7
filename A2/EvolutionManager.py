@@ -148,6 +148,11 @@ class EvolutionManager:
         print("Starting evolution with population size:", population_size)
         return self.toolbox.population(n=population_size)
 
+    def build_population_from_file(self, file_path: str, n: int) -> list:
+        weights = np.load(file_path, allow_pickle=True)
+        individuals = [creator.Individual(weights.tolist()) for _ in range(n)]
+        return individuals
+
     def run_evolution(
         self,
         pop: list,
@@ -218,6 +223,63 @@ class EvolutionManager:
             Path(__file__).parent
             / "results"
             / f"best_individual_curricular_learning_{curricular_learning}.npy",
+            best_individual,
+        )
+
+        return best_individual, logbook
+
+    def run_evolution_infinite(
+        self,
+        pop: list,
+        cx_prob: float = 0.8,
+        mut_prob: float = 0.3,
+        exp_name=None,
+    ) -> tuple[np.ndarray, tools.Logbook]:
+
+        # Track best fitness
+        hof = tools.HallOfFame(1)
+
+        # Track stats across generations
+        stats = tools.Statistics(lambda ind: ind.fitness.values)
+        stats.register("avg", np.mean)
+        stats.register("std", np.std)
+        stats.register("min", np.min)
+        stats.register("max", np.max)
+
+        start = t.time()
+        ctx = mp.get_context("spawn")
+        with ctx.Pool(mp.cpu_count()) as pool:
+            self.toolbox.register("map", pool.map)
+
+            pop, logbook = algorithms.eaMuPlusLambda_infinite(
+                pop,
+                self.toolbox,
+                mu=len(pop),
+                lambda_=len(pop),
+                cxpb=cx_prob,
+                mutpb=mut_prob,
+                stats=stats,
+                halloffame=hof,
+                verbose=True,
+            )
+
+        end = t.time()
+        print(f"Time taken: {end - start:.2f} seconds")
+
+        self.save_logbook(
+            logbook,
+            tag="EA1_infinite",
+            run_id=1,
+            out_dir=Path(__file__).parent / "results",
+            exp_name=exp_name,
+        )
+
+        best_individual = np.array(hof[0])
+
+        np.save(
+            Path(__file__).parent
+            / "results"
+            / f"best_individual_infinite.npy",
             best_individual,
         )
 
