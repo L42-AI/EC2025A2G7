@@ -3,98 +3,142 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from pathlib import Path
+import os, glob
+
 
 def visualise_furthest_point(furthest_points: list):
     """Visualise the frequency of furthest points reached in multiple simulations as a histogram."""
 
     plt.figure(figsize=(10, 6))
-    plt.hist(furthest_points, bins='auto', edgecolor='black')
-    plt.title('Frequency of Furthest Points Reached in Simulations')
-    plt.xlabel('Furthest Point (XY Plane)')
-    plt.ylabel('Frequency')
+    plt.hist(furthest_points, bins="auto", edgecolor="black")
+    plt.title("Frequency of Furthest Points Reached in Simulations")
+    plt.xlabel("Furthest Point (XY Plane)")
+    plt.ylabel("Frequency")
     plt.grid(True)
-    plt.savefig('furthest_points_histogram.png')
+    plt.savefig("furthest_points_histogram.png")
     plt.show()
 
-def show_qpos_history(history:list):
+
+def show_qpos_history(history: list):
     # Convert list of [x,y,z] positions to numpy array
     pos_data = np.array(history)
-    
+
     # Create figure and axis
     plt.figure(figsize=(10, 6))
-    
+
     # Plot x,y trajectory
-    plt.plot(pos_data[:, 0], pos_data[:, 1], 'b-', label='Path')
-    plt.plot(pos_data[0, 0], pos_data[0, 1], 'go', label='Start')
-    plt.plot(pos_data[-1, 0], pos_data[-1, 1], 'ro', label='End')
-    
+    plt.plot(pos_data[:, 0], pos_data[:, 1], "b-", label="Path")
+    plt.plot(pos_data[0, 0], pos_data[0, 1], "go", label="Start")
+    plt.plot(pos_data[-1, 0], pos_data[-1, 1], "ro", label="End")
+
     # Add labels and title
-    plt.xlabel('X Position')
-    plt.ylabel('Y Position') 
-    plt.title('Robot Path in XY Plane')
+    plt.xlabel("X Position")
+    plt.ylabel("Y Position")
+    plt.title("Robot Path in XY Plane")
     plt.legend()
     plt.grid(True)
-    
+
     # Set equal aspect ratio and center at (0,0)
-    plt.axis('equal')
+    plt.axis("equal")
     max_range = max(abs(pos_data).max(), 0.3)  # At least 1.0 to avoid empty plots
     plt.xlim(-max_range, max_range)
     plt.ylim(-max_range, max_range)
-    
+
     plt.show()
 
+
 # Load npz
-def load_npz_file(path:str)-> dict:
+def load_npz_file(path: str) -> dict:
     data = np.load(path)
-    out = {k: data[k] for k in data.files} 
+    out = {k: data[k] for k in data.files}
     return out
 
 
-# Build tidy dataframe
-def build_pandas_dataframe( dict ):
-    df = pd.DataFrame({
-        "Generation": dict["gen"],
-        "Average": dict["avg"],
-        "Std": dict["std"],
-        "Min": dict["min"],
-        "Max": dict["max"],
-        "Mutpb": dict["mutpb"],
-        "Cxpb": dict["cxpb"]
-    })
+# Build pandas dataframe
+def build_pandas_dataframe(dict):
+    df = pd.DataFrame(
+        {
+            "Generation": dict["gen"],
+            "Average": dict["avg"],
+            "Std": dict["std"],
+            "Min": dict["min"],
+            "Max": dict["max"],
+            "Mutpb": dict["mutpb"],
+            "Cxpb": dict["cxpb"],
+        }
+    )
     return df
 
-# Moving average window=3 generations 
+
+# Moving average window=3 generations
 def moving_average(df):
     window = 3
-    df["MovingAvg"] = df["Average"].rolling(min_periods=1, window=window, center=True).mean()
-    df["MovingStd"] = df["Average"].rolling(min_periods=1, window=window, center=True).std()
+    df["MovingAvg"] = (
+        df["Average"].rolling(min_periods=1, window=window, center=True).mean()
+    )
+    df["MovingStd"] = (
+        df["Average"].rolling(min_periods=1, window=window, center=True).std()
+    )
     return df
 
-def plot_result(path: str):
-    d  = load_npz_file(path)
+
+def plot_result_mutcx_pb(path: str, name: str):
+    d = load_npz_file(path)
     df = moving_average(build_pandas_dataframe(d))
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6), sharex=True)
+    fig.canvas.manager.set_window_title(name)
 
-    # --- Fitness plot (left) ---
-    sns.scatterplot(data=df, x="Generation", y="Average",
-                    ax=ax1, s=30, alpha=0.5, color="blue", label="Fitness")
-    sns.lineplot(data=df, x="Generation", y="MovingAvg",
-                 ax=ax1, linewidth=2, color="purple", label="Moving average")
-    ax1.fill_between(df["Generation"],
-                     df["MovingAvg"] - df["MovingStd"],
-                     df["MovingAvg"] + df["MovingStd"],
-                     alpha=0.2, color="orange", label="Moving ± std")
+    sns.scatterplot(
+        data=df,
+        x="Generation",
+        y="Average",
+        ax=ax1,
+        s=30,
+        alpha=0.5,
+        color="blue",
+        label="Fitness",
+    )
+    sns.lineplot(
+        data=df,
+        x="Generation",
+        y="MovingAvg",
+        ax=ax1,
+        linewidth=2,
+        color="purple",
+        label="Moving average",
+    )
+    ax1.fill_between(
+        df["Generation"],
+        df["MovingAvg"] - df["MovingStd"],
+        df["MovingAvg"] + df["MovingStd"],
+        alpha=0.2,
+        color="orange",
+        label="Moving ± std",
+    )
     ax1.set_xlabel("Generation")
     ax1.set_ylabel("Fitness")
     ax1.set_title("Fitness over Generations")
     ax1.legend()
 
-    # --- Probabilities plot (right) ---
-    sns.lineplot(data=df, x="Generation", y="Mutpb",
-                 ax=ax2, linewidth=2, color="green", label="Mutation prob")
-    sns.lineplot(data=df, x="Generation", y="Cxpb",
-                 ax=ax2, linewidth=2, color="black", label="Crossover prob")
+    sns.lineplot(
+        data=df,
+        x="Generation",
+        y="Mutpb",
+        ax=ax2,
+        linewidth=2,
+        color="green",
+        label="Mutation prob",
+    )
+    sns.lineplot(
+        data=df,
+        x="Generation",
+        y="Cxpb",
+        ax=ax2,
+        linewidth=2,
+        color="black",
+        label="Crossover prob",
+    )
     ax2.set_xlabel("Generation")
     ax2.set_ylabel("Probability")
     ax2.set_title("Evolutionary Parameters")
@@ -103,7 +147,158 @@ def plot_result(path: str):
     plt.tight_layout()
     plt.show()
 
+
+def df_from_run(path) -> pd.DataFrame:
+    filetype = os.path.splitext(path)[1].lower()
+    if filetype == ".npz":
+        d = load_npz_file(path)
+        df = build_pandas_dataframe(d)
+        return df[["Generation", "Average"]].copy()
+    elif filetype == ".npy":
+        arr = np.load(path)
+        return pd.DataFrame(
+            {"Generation": np.arange(len(arr), dtype=int), "Average": arr}
+        )
+    else:
+        raise ValueError(f"Unsupported file type for {path}. Use .npz or .npy")
+
+
+def _baseline_mean(baseline_path):
+    """Accepts a single path OR a list/tuple of baseline files; returns one mean."""
+    if baseline_path is None:
+        return None
+    if isinstance(baseline_path, (list, tuple)):
+        arrs = [np.load(p) for p in baseline_path]
+        return float(np.concatenate(arrs).mean())
+    return float(np.load(baseline_path).mean())
+
+
+def plot_agg_results(
+    path_1: str,
+    path_2: str,
+    path_3: str,
+    ax,
+    title: str = "Fitness over generations",
+    baseline_mean: float | None = None,
+):
+    dfs = [df_from_run(p) for p in (path_1, path_2, path_3)]
+    all_df = pd.concat(dfs, ignore_index=True)
+
+    agg = all_df.groupby("Generation", as_index=False)["Average"].agg(
+        Mean="mean", Std="std"
+    )
+
+    tmp = agg.rename(columns={"Mean": "Average"})
+    mov = moving_average(tmp)
+    df_plot = mov.merge(agg[["Generation", "Std"]], on="Generation", how="left")
+
+    sns.scatterplot(
+        data=df_plot,
+        x="Generation",
+        y="Average",
+        ax=ax,
+        s=30,
+        alpha=0.5,
+        color="blue",
+        label="Fitness (mean)",
+    )
+    sns.lineplot(
+        data=df_plot,
+        x="Generation",
+        y="MovingAvg",
+        ax=ax,
+        linewidth=2,
+        color="purple",
+        label="Moving average",
+    )
+    ax.fill_between(
+        df_plot["Generation"],
+        df_plot["MovingAvg"] - df_plot["MovingStd"],
+        df_plot["MovingAvg"] + df_plot["MovingStd"],
+        alpha=0.2,
+        color="orange",
+        label="Moving ± std",
+    )
+
+    ax.set_xlabel("Generation")
+    ax.set_ylabel("Fitness")
+    ax.set_title(title)
+    ax.legend(loc="best")
+    return df_plot
+
+
+def plot_3_experiments(
+    triplet_left,
+    triplet_right,
+    titles=("Without CL", "With CL"),
+    baseline_path=None,
+    window_title="Aggregated fitness",
+):
+    """
+    triplet_left/right: (path1, path2, path3) for each condition
+    baseline_path: (path1, path2, path3) for each baseline
+    """
+    m = _baseline_mean(baseline_path)
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharex=True, sharey=True)
+    try:
+        fig.canvas.manager.set_window_title(window_title)
+    except Exception:
+        pass
+
+    plot_agg_results(*triplet_left, ax=axes[0], title=titles[0], baseline_mean=m)
+    plot_agg_results(*triplet_right, ax=axes[1], title=titles[1], baseline_mean=m)
+
+    if m is not None and np.isfinite(m):
+        for ax in axes:
+            x0, x1 = ax.get_xlim()
+            ax.plot(
+                [x0, x1],
+                [m, m],
+                linestyle=":",
+                linewidth=1.8,
+                color="red",
+                label="Baseline (mean)",
+                zorder=6,
+                clip_on=False,
+            )
+            lo, hi = ax.get_ylim()
+            ax.set_ylim(min(lo, m), max(hi, m))
+            h, l = ax.get_legend_handles_labels()
+            uniq = dict(zip(l, h))
+            ax.legend(uniq.values(), uniq.keys(), loc="best")
+
+    plt.tight_layout()
+    plt.show()
+    return fig, axes
+
+
+plot_3_experiments(
+    triplet_left=(
+        "A2/ea_results/13_EA1_run01_20250923-034308.npz",
+        "A2/ea_results/24_experiment_CL_False.npz",
+        "A2/ea_results/42_experiment_CL_False.npz",
+    ),
+    triplet_right=(
+        "A2/ea_results/13_EA1_run01_20250923-092224.npz",
+        "A2/ea_results/24_experiment_CL_True.npz",
+        "A2/ea_results/42_experiment_CL_True.npz",
+    ),
+    titles=("Without CL", "With CL"),
+    baseline_path=(
+        "A2/baseline_results/13_baseline_fitnesses.npy",
+        "A2/baseline_results/24_baseline_fitnesses.npy",
+        "A2/baseline_results/42_baseline_fitnesses.npy",
+    ),
+    window_title="Aggregated fitness",
+)
+
+
+"""
 if __name__ == "__main__":
-    path = Path(__file__).parent / "results" / "EA1_run01_20250922-201731.npz"
-    plot_result(path)
-   
+    path = Path(__file__).parent /  "/Users/fiebergli/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/AI master/P1/Evolutionary Computing/EC2025A2G7/A2/ea_results/24_experiment_CL_False.npz"
+    plot_result_mutcx_pb(path, "24_experiment_CL_False")
+    path = Path(__file__).parent /  "/Users/fiebergli/Library/CloudStorage/OneDrive-VrijeUniversiteitAmsterdam/AI master/P1/Evolutionary Computing/EC2025A2G7/A2/ea_results/24_experiment_CL_True.npz"
+    plot_result_mutcx_pb(path, "24_experiment_CL_True")
+
+   """
