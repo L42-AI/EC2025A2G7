@@ -267,14 +267,11 @@ def plot_3_experiments(
             h, l = ax.get_legend_handles_labels()
             uniq = dict(zip(l, h))
             ax.legend(uniq.values(), uniq.keys(), loc="best")
-            ax.grid(True)   
+            ax.grid(True)
 
     plt.tight_layout()
     plt.show()
     return fig, axes
-
-
-
 
 
 if __name__ == "__main__":
