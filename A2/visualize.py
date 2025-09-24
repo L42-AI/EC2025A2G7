@@ -140,7 +140,7 @@ def build_all_baseline_npz(src_dir):
     return out
 
 
-#out_paths = build_all_baseline_npz("A2/baseline_results")
+# out_paths = build_all_baseline_npz("A2/baseline_results")
 
 
 # Build pandas dataframe
@@ -276,7 +276,7 @@ def plot_agg_results(
         x="Generation",
         y="Average",
         ax=ax,
-        s=30,
+        s=15,
         alpha=0.5,
         color="blue",
         label="Fitness (mean)",
@@ -286,7 +286,7 @@ def plot_agg_results(
         x="Generation",
         y="MovingAvg",
         ax=ax,
-        linewidth=2,
+        linewidth=1,
         color="purple",
         label="Moving average",
     )
