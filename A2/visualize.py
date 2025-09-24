@@ -140,7 +140,6 @@ def build_all_baseline_npz(src_dir):
 
 # out_paths = build_all_baseline_npz("A2/baseline_results")
 
-
 # Build pandas dataframe
 def build_pandas_dataframe(dict):
     df = pd.DataFrame(
@@ -354,7 +353,3 @@ if __name__ == "__main__":
         titles=("Baseline", "Experiment 1", "Experiment 2"),
         window_title="Aggregated fitness",
     )
-    # path = Path(__file__).parent / "ea_results/24_experiment_CL_False.npz"
-    # plot_result_mutcx_pb(path, "24_experiment_CL_False")
-    # path = Path(__file__).parent / "ea_results/24_experiment_CL_True.npz"
-    # plot_result_mutcx_pb(path, "24_experiment_CL_True")
