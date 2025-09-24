@@ -54,6 +54,95 @@ def load_npz_file(path: str) -> dict:
     return out
 
 
+import os, re, numpy as np
+
+
+def _natural_key(s: str):
+    return [
+        int(t) if t.isdigit() else t.lower()
+        for t in re.findall(r"\d+|\D+", os.path.basename(s))
+    ]
+
+
+def make_deap_like_npz_from_list(
+    file_names, src_dir, out_path, maximize=True, mutpb_val=np.nan, cxpb_val=np.nan
+):
+    """
+    file_names: list of .npy names (one per generation), in any order
+    out_path:   path to the DEAP-like .npz we will write
+    """
+    if not file_names:
+        raise ValueError("No baseline files provided")
+
+    # sort by generation-like numbering in the filename
+    file_names = sorted(file_names, key=_natural_key)
+
+    G = len(file_names)
+    gen = np.arange(G, dtype=int)
+    avg = np.empty(G, float)
+    std = np.empty(G, float)
+    vmin = np.empty(G, float)
+    vmax = np.empty(G, float)
+    best = np.empty(G, float)
+
+    for g, name in enumerate(file_names):
+        arr = np.load(os.path.join(src_dir, name)).ravel()
+        avg[g] = float(arr.mean())
+        std[g] = float(arr.std(ddof=0))
+        vmin[g] = float(arr.min())
+        vmax[g] = float(arr.max())
+        best[g] = float(arr.max() if maximize else arr.min())
+
+    # fill mut/cx arrays so your DataFrame builder works
+    mutpb = np.full(G, mutpb_val, dtype=float)
+    cxpb = np.full(G, cxpb_val, dtype=float)
+
+    np.savez_compressed(
+        out_path,
+        gen=gen,
+        avg=avg,
+        std=std,
+        min=vmin,
+        max=vmax,
+        best=best,
+        mutpb=mutpb,
+        cxpb=cxpb,
+    )
+    return out_path
+
+
+def build_all_baseline_npz(src_dir):
+    # list once; only .npy files
+    names = [n for n in os.listdir(src_dir) if n.endswith(".npy")]
+
+    groups = {
+        "13": [n for n in names if n.startswith("13")],
+        "123": [n for n in names if n.startswith("123")],
+        "24": [n for n in names if n.startswith("24")],
+        "42": [n for n in names if n.startswith("42")],
+    }
+
+    out = {}
+    for prefix, files in groups.items():
+        if not files:
+            out[prefix] = None
+            continue
+        out_path = os.path.join(src_dir, f"baseline_{prefix}_deap.npz")
+        make_deap_like_npz_from_list(
+            files,
+            src_dir,
+            out_path,
+            maximize=True,  # set False if lower is better
+            mutpb_val=np.nan,
+            cxpb_val=np.nan,
+        )
+        out[prefix] = out_path
+    return out
+
+
+#out_paths = build_all_baseline_npz("A2/baseline_results")
+
+
 # Build pandas dataframe
 def build_pandas_dataframe(dict):
     df = pd.DataFrame(
@@ -247,14 +336,10 @@ def plot_3_experiments(
 if __name__ == "__main__":
     plot_3_experiments(
         baseline_exp=(
-            Path(__file__).parent
-            / "baseline_results/123_baseline_fitnesses_new_run.npy",
-            Path(__file__).parent
-            / "baseline_results/123_baseline_fitnesses_new_run.npy",
-            Path(__file__).parent
-            / "baseline_results/123_baseline_fitnesses_new_run.npy",
-            Path(__file__).parent
-            / "baseline_results/123_baseline_fitnesses_new_run.npy",
+            Path(__file__).parent / "baseline_results/baseline_13_deap.npz",
+            Path(__file__).parent / "baseline_results/baseline_24_deap.npz",
+            Path(__file__).parent / "baseline_results/baseline_42_deap.npz",
+            Path(__file__).parent / "baseline_results/baseline_123_deap.npz",
         ),
         regular_ea=(
             Path(__file__).parent / "ea_results/123_experiment_CL_False_new_run.npz",
