@@ -289,6 +289,7 @@ class EvolutionManager:
         self,
         population: list,
         seed: int,
+        gen_num: int,
     ) -> list[float]:
         start = t.time()
         ctx = mp.get_context("spawn")
@@ -297,7 +298,7 @@ class EvolutionManager:
                 float(result[0]) for result in pool.map(self.eval_func, population)
             ]
 
-        self.export_baseline_fitnesses(fitnesses, seed)
+        self.export_baseline_fitnesses(fitnesses, seed, gen_num)
         end = t.time()
         print(f"Baseline evaluation time: {end - start:.2f} seconds")
         return fitnesses
@@ -306,8 +307,9 @@ class EvolutionManager:
         self,
         fitnesses: list[float],
         seed: int,
+        gen_num: int,
         out_dir=Path(__file__).parent / "results"
     ):
         out_dir.mkdir(parents=True, exist_ok=True)
-        np.save(out_dir / f"{seed}_baseline_fitnesses.npy", np.array(fitnesses))
-        print(f"Saved baseline fitnesses to {out_dir / f'{seed}_baseline_fitnesses.npy'}")
+        np.save(out_dir / f"{seed}_{gen_num}_baseline_fitnesses.npy", np.array(fitnesses))
+        print(f"Saved baseline fitnesses to {out_dir / f'{seed}_{gen_num}_baseline_fitnesses.npy'}")
