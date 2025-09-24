@@ -163,25 +163,15 @@ def df_from_run(path) -> pd.DataFrame:
         raise ValueError(f"Unsupported file type for {path}. Use .npz or .npy")
 
 
-def _baseline_mean(baseline_path):
-    """Accepts a single path OR a list/tuple of baseline files; returns one mean."""
-    if baseline_path is None:
-        return None
-    if isinstance(baseline_path, (list, tuple)):
-        arrs = [np.load(p) for p in baseline_path]
-        return float(np.concatenate(arrs).mean())
-    return float(np.load(baseline_path).mean())
-
-
 def plot_agg_results(
     path_1: str,
     path_2: str,
     path_3: str,
+    path_4: str,
     ax,
     title: str = "Fitness over generations",
-    baseline_mean: float | None = None,
 ):
-    dfs = [df_from_run(p) for p in (path_1, path_2, path_3)]
+    dfs = [df_from_run(p) for p in (path_1, path_2, path_3, path_4)]
     all_df = pd.concat(dfs, ignore_index=True)
 
     agg = all_df.groupby("Generation", as_index=False)["Average"].agg(
@@ -211,14 +201,14 @@ def plot_agg_results(
         color="purple",
         label="Moving average",
     )
-    # ax.fill_between(
-    #     df_plot["Generation"],
-    #     df_plot["MovingAvg"] - df_plot["MovingStd"],
-    #     df_plot["MovingAvg"] + df_plot["MovingStd"],
-    #     alpha=0.2,
-    #     color="orange",
-    #     label="Moving ± std",
-    # )
+    ax.fill_between(
+        df_plot["Generation"],
+        df_plot["MovingAvg"] - df_plot["MovingStd"],
+        df_plot["MovingAvg"] + df_plot["MovingStd"],
+        alpha=0.2,
+        color="orange",
+        label="Moving ± std",
+    )
 
     ax.set_xlabel("Generation")
     ax.set_ylabel("Fitness")
@@ -228,73 +218,57 @@ def plot_agg_results(
 
 
 def plot_3_experiments(
-    triplet_left,
-    triplet_right,
-    titles=("Without CL", "With CL"),
-    baseline_path=None,
+    baseline_exp,
+    regular_ea,
+    enhanced_ea,
+    titles=("Baseline", "Standard EA", "Elevated EA"),
     window_title="Aggregated fitness",
 ):
     """
     triplet_left/right: (path1, path2, path3) for each condition
     baseline_path: (path1, path2, path3) for each baseline
     """
-    m = _baseline_mean(baseline_path)
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharex=True, sharey=True)
+    fig, axes = plt.subplots(1, 3, figsize=(12, 5), sharex=True, sharey=True)
     try:
         fig.canvas.manager.set_window_title(window_title)
     except Exception:
         pass
 
-    plot_agg_results(*triplet_left, ax=axes[0], title=titles[0], baseline_mean=m)
-    plot_agg_results(*triplet_right, ax=axes[1], title=titles[1], baseline_mean=m)
-
-    if m is not None and np.isfinite(m):
-        for ax in axes:
-            x0, x1 = ax.get_xlim()
-            ax.plot(
-                [x0, x1],
-                [m, m],
-                linestyle=":",
-                linewidth=1.8,
-                color="red",
-                label="Baseline (mean)",
-                zorder=6,
-                clip_on=False,
-            )
-            lo, hi = ax.get_ylim()
-            ax.set_ylim(min(lo, m), max(hi, m))
-            h, l = ax.get_legend_handles_labels()
-            uniq = dict(zip(l, h))
-            ax.legend(uniq.values(), uniq.keys(), loc="best")
-            ax.grid(True)   
+    plot_agg_results(*baseline_exp, ax=axes[0], title=titles[0])
+    plot_agg_results(*regular_ea, ax=axes[1], title=titles[1])
+    plot_agg_results(*enhanced_ea, ax=axes[2], title=titles[2])
 
     plt.tight_layout()
     plt.show()
     return fig, axes
 
 
-
-
-
 if __name__ == "__main__":
     plot_3_experiments(
-        triplet_left=(
-            Path(__file__).parent / "ea_results/13_experiment_CL_False.npz",
-            Path(__file__).parent / "ea_results/24_experiment_CL_False.npz",
-            Path(__file__).parent / "ea_results/42_experiment_CL_False.npz",
+        baseline_exp=(
+            Path(__file__).parent
+            / "baseline_results/123_baseline_fitnesses_new_run.npy",
+            Path(__file__).parent
+            / "baseline_results/123_baseline_fitnesses_new_run.npy",
+            Path(__file__).parent
+            / "baseline_results/123_baseline_fitnesses_new_run.npy",
+            Path(__file__).parent
+            / "baseline_results/123_baseline_fitnesses_new_run.npy",
         ),
-        triplet_right=(
-            Path(__file__).parent / "ea_results/13_experiment_CL_True.npz",
-            Path(__file__).parent / "ea_results/24_experiment_CL_True.npz",
-            Path(__file__).parent / "ea_results/42_experiment_CL_True.npz",
+        regular_ea=(
+            Path(__file__).parent / "ea_results/123_experiment_CL_False_new_run.npz",
+            Path(__file__).parent / "ea_results/13_experiment_CL_False_new_run.npz",
+            Path(__file__).parent / "ea_results/42_experiment_CL_False_new_run.npz",
+            Path(__file__).parent / "ea_results/24_experiment_CL_False_new_run.npz",
         ),
-        titles=("Without CL", "With CL"),
-        baseline_path=(
-            Path(__file__).parent / "baseline_results/13_baseline_fitnesses.npy",
-            Path(__file__).parent / "baseline_results/24_baseline_fitnesses.npy",
-            Path(__file__).parent / "baseline_results/42_baseline_fitnesses.npy",
+        enhanced_ea=(
+            Path(__file__).parent / "ea_results/123_experiment_CL_True_new_run.npz",
+            Path(__file__).parent / "ea_results/13_experiment_CL_True_new_run.npz",
+            Path(__file__).parent / "ea_results/42_experiment_CL_True_new_run.npz",
+            Path(__file__).parent / "ea_results/24_experiment_CL_True_new_run.npz",
         ),
+        titles=("Baseline", "Standard EA", "Enhanced EA"),
         window_title="Aggregated fitness",
     )
     # path = Path(__file__).parent / "ea_results/24_experiment_CL_False.npz"
