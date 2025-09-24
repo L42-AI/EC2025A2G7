@@ -310,7 +310,7 @@ def plot_3_experiments(
     baseline_exp,
     regular_ea,
     enhanced_ea,
-    titles=("Baseline", "Standard EA", "Elevated EA"),
+    titles=("Baseline", "Experiment 1", "Experiment 2"),
     window_title="Aggregated fitness",
 ):
     """
@@ -353,7 +353,7 @@ if __name__ == "__main__":
             Path(__file__).parent / "ea_results/42_experiment_CL_True_new_run.npz",
             Path(__file__).parent / "ea_results/24_experiment_CL_True_new_run.npz",
         ),
-        titles=("Baseline", "Standard EA", "Enhanced EA"),
+        titles=("Baseline", "Experiment 1", "Experiment 2"),
         window_title="Aggregated fitness",
     )
     # path = Path(__file__).parent / "ea_results/24_experiment_CL_False.npz"
