@@ -5,6 +5,7 @@ import seaborn as sns
 from pathlib import Path
 import os, glob
 
+import os, re, numpy as np
 
 def visualise_furthest_point(furthest_points: list):
     """Visualise the frequency of furthest points reached in multiple simulations as a histogram."""
@@ -43,9 +44,6 @@ def load_npz_file(path: str) -> dict:
     data = np.load(path)
     out = {k: data[k] for k in data.files}
     return out
-
-
-import os, re, numpy as np
 
 
 def _natural_key(s: str):
@@ -129,7 +127,6 @@ def build_all_baseline_npz(src_dir):
 
 
 # out_paths = build_all_baseline_npz("A2/baseline_results")
-
 
 # Build pandas dataframe
 def build_pandas_dataframe(dict):
@@ -331,16 +328,16 @@ if __name__ == "__main__":
             Path(__file__).parent / "baseline_results/baseline_123_deap.npz",
         ),
         regular_ea=(
-            Path(__file__).parent / "ea_results/123_experiment_CL_False_new_run.npz",
-            Path(__file__).parent / "ea_results/13_experiment_CL_False_new_run.npz",
-            Path(__file__).parent / "ea_results/42_experiment_CL_False_new_run.npz",
-            Path(__file__).parent / "ea_results/24_experiment_CL_False_new_run.npz",
+            Path(__file__).parent / "ea_results/123_experiment_CL_False.npz",
+            Path(__file__).parent / "ea_results/13_experiment_CL_False.npz",
+            Path(__file__).parent / "ea_results/42_experiment_CL_False.npz",
+            Path(__file__).parent / "ea_results/24_experiment_CL_False.npz",
         ),
         enhanced_ea=(
-            Path(__file__).parent / "ea_results/123_experiment_CL_True_new_run.npz",
-            Path(__file__).parent / "ea_results/13_experiment_CL_True_new_run.npz",
-            Path(__file__).parent / "ea_results/42_experiment_CL_True_new_run.npz",
-            Path(__file__).parent / "ea_results/24_experiment_CL_True_new_run.npz",
+            Path(__file__).parent / "ea_results/123_experiment_CL_True.npz",
+            Path(__file__).parent / "ea_results/13_experiment_CL_True.npz",
+            Path(__file__).parent / "ea_results/42_experiment_CL_True.npz",
+            Path(__file__).parent / "ea_results/24_experiment_CL_True.npz",
         ),
         titles=("Baseline", "Experiment 1", "Experiment 2"),
         window_title="Aggregated fitness",
