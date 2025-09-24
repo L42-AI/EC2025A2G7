@@ -177,11 +177,12 @@ def plot_agg_results(
     path_1: str,
     path_2: str,
     path_3: str,
+    path_4: str,
     ax,
     title: str = "Fitness over generations",
     baseline_mean: float | None = None,
 ):
-    dfs = [df_from_run(p) for p in (path_1, path_2, path_3)]
+    dfs = [df_from_run(p) for p in (path_1, path_2, path_3, path_4)]
     all_df = pd.concat(dfs, ignore_index=True)
 
     agg = all_df.groupby("Generation", as_index=False)["Average"].agg(
@@ -277,20 +278,23 @@ def plot_3_experiments(
 if __name__ == "__main__":
     plot_3_experiments(
         triplet_left=(
-            Path(__file__).parent / "ea_results/13_experiment_CL_False.npz",
-            Path(__file__).parent / "ea_results/24_experiment_CL_False.npz",
-            Path(__file__).parent / "ea_results/42_experiment_CL_False.npz",
+            Path(__file__).parent / "ea_results/123_experiment_CL_False_new_run.npz",
+            Path(__file__).parent / "ea_results/13_experiment_CL_False_new_run.npz",
+            Path(__file__).parent / "ea_results/42_experiment_CL_False_new_run.npz",
+            Path(__file__).parent / "ea_results/24_experiment_CL_False_new_run.npz"
         ),
         triplet_right=(
-            Path(__file__).parent / "ea_results/13_experiment_CL_True.npz",
-            Path(__file__).parent / "ea_results/24_experiment_CL_True.npz",
-            Path(__file__).parent / "ea_results/42_experiment_CL_True.npz",
+            Path(__file__).parent / "ea_results/123_experiment_CL_True_new_run.npz",
+            Path(__file__).parent / "ea_results/13_experiment_CL_True_new_run.npz",
+            Path(__file__).parent / "ea_results/42_experiment_CL_True_new_run.npz",
+            Path(__file__).parent / "ea_results/24_experiment_CL_True_new_run.npz",
         ),
-        titles=("Without CL", "With CL"),
+        titles=("Standard EA", "Enhanced EA"),
         baseline_path=(
-            Path(__file__).parent / "baseline_results/13_baseline_fitnesses.npy",
-            Path(__file__).parent / "baseline_results/24_baseline_fitnesses.npy",
-            Path(__file__).parent / "baseline_results/42_baseline_fitnesses.npy",
+            Path(__file__).parent / "baseline_results/123_baseline_fitnesses_new_run.npy",
+            Path(__file__).parent / "baseline_results/123_baseline_fitnesses_new_run.npy",
+            Path(__file__).parent / "baseline_results/123_baseline_fitnesses_new_run.npy",
+            Path(__file__).parent / "baseline_results/123_baseline_fitnesses_new_run.npy",
         ),
         window_title="Aggregated fitness",
     )
