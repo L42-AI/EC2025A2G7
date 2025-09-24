@@ -21,30 +21,21 @@ def visualise_furthest_point(furthest_points: list):
 
 
 def show_qpos_history(history: list):
-    # Convert list of [x,y,z] positions to numpy array
     pos_data = np.array(history)
 
-    # Create figure and axis
     plt.figure(figsize=(10, 6))
-
-    # Plot x,y trajectory
     plt.plot(pos_data[:, 0], pos_data[:, 1], "b-", label="Path")
     plt.plot(pos_data[0, 0], pos_data[0, 1], "go", label="Start")
     plt.plot(pos_data[-1, 0], pos_data[-1, 1], "ro", label="End")
-
-    # Add labels and title
     plt.xlabel("X Position")
     plt.ylabel("Y Position")
     plt.title("Robot Path in XY Plane")
     plt.legend()
     plt.grid(True)
-
-    # Set equal aspect ratio and center at (0,0)
     plt.axis("equal")
-    max_range = max(abs(pos_data).max(), 0.3)  # At least 1.0 to avoid empty plots
+    max_range = max(abs(pos_data).max(), 0.3)
     plt.xlim(-max_range, max_range)
     plt.ylim(-max_range, max_range)
-
     plt.show()
 
 
@@ -72,7 +63,6 @@ def make_deap_like_npz_from_list(
     if not file_names:
         raise ValueError("No baseline files provided")
 
-    # sort by generation-like numbering in the filename
     file_names = sorted(file_names, key=_natural_key)
 
     G = len(file_names)
@@ -91,7 +81,6 @@ def make_deap_like_npz_from_list(
         vmax[g] = float(arr.max())
         best[g] = float(arr.max() if maximize else arr.min())
 
-    # fill mut/cx arrays so your DataFrame builder works
     mutpb = np.full(G, mutpb_val, dtype=float)
     cxpb = np.full(G, cxpb_val, dtype=float)
 
@@ -110,7 +99,6 @@ def make_deap_like_npz_from_list(
 
 
 def build_all_baseline_npz(src_dir):
-    # list once; only .npy files
     names = [n for n in os.listdir(src_dir) if n.endswith(".npy")]
 
     groups = {
@@ -130,7 +118,7 @@ def build_all_baseline_npz(src_dir):
             files,
             src_dir,
             out_path,
-            maximize=True,  # set False if lower is better
+            maximize=True,
             mutpb_val=np.nan,
             cxpb_val=np.nan,
         )
@@ -300,6 +288,7 @@ def plot_agg_results(
     ax.set_ylabel("Fitness")
     ax.set_title(title)
     ax.legend(loc="best")
+    ax.grid(True)
     return df_plot
 
 
