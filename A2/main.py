@@ -5,47 +5,46 @@ import time as t
 
 import run
 
+from consts import INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE, POPULATION_SIZE, GENERATIONS
+
 if __name__ == "__main__":
-    input_size = 29  # 15 qpos + 14 qvel
-    hidden_size = 64
-    output_size = 8  # 8 joints
-    population_size = 1000
-    generations = 10
 
     controller_type = NNController
 
     evolution_manager = EvolutionManager(
-        input_size,
-        hidden_size,
-        output_size,
+        INPUT_SIZE,
+        HIDDEN_SIZE,
+        OUTPUT_SIZE,
         controller_type=controller_type,
     )
 
+    best_weights = np.load("results/best_individual_curricular_learning_False.npy")
+
     run.single(
         controller=controller_type(
-            input_size=input_size,
-            hidden_size=hidden_size,
-            output_size=output_size,
-            weights=None,
+            input_size=INPUT_SIZE,
+            hidden_size=HIDDEN_SIZE,
+            output_size=OUTPUT_SIZE,
+            weights=np.array(best_weights),
         ),
         simulation_steps=15_000,
         record_video=True,
     )
 
-    population = evolution_manager.build_population(population_size)
+    population = evolution_manager.build_population(POPULATION_SIZE)
 
     best_weights, logbook = evolution_manager.run_evolution(
         population.copy(),
-        generations=generations,
+        generations=GENERATIONS,
         cx_prob=0.5,
         mut_prob=0.5
     )
 
     run.single(
         controller=controller_type(
-            input_size=input_size,
-            hidden_size=hidden_size,
-            output_size=output_size,
+            input_size=INPUT_SIZE,
+            hidden_size=HIDDEN_SIZE,
+            output_size=OUTPUT_SIZE,
             weights=np.array(best_weights),
         ),
         simulation_steps=15_000,

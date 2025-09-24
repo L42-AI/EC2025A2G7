@@ -5,8 +5,9 @@ import random as r
 
 from consts import INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE, POPULATION_SIZE, GENERATIONS
 
-r.seed(24)
-np.random.seed(24)
+seed = 24
+r.seed(seed)
+np.random.seed(seed)
 
 if __name__ == "__main__":
 
@@ -17,14 +18,14 @@ if __name__ == "__main__":
     )
     population = evolution_manager.build_population(POPULATION_SIZE)
 
-    fitnesses = evolution_manager.run_baseline(population)
+    fitnesses = evolution_manager.run_baseline(population, seed)
 
     best_weights, logbook = evolution_manager.run_evolution(
         population.copy(),
         generations=GENERATIONS,
         cx_prob=0.5,
         mut_prob=0.5,
-        exp_name="Fie_experiment_CL_False",
+        exp_name=f"{seed}_experiment_CL_False",
     )
 
     best_weights, logbook = evolution_manager.run_evolution(
@@ -33,5 +34,5 @@ if __name__ == "__main__":
         cx_prob=0.0,
         mut_prob=1.0,
         curricular_learning=True,
-        exp_name="Fie_experiment_CL_True",
+        exp_name=f"{seed}_experiment_CL_True",
     )
